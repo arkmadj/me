@@ -1,122 +1,160 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from './assets/vite.svg'
-import heroImg from './assets/hero.png'
-import './App.css'
+import {
+  animate,
+  stagger,
+  splitText,
+  createScope,
+  createDraggable,
+  spring,
+  scrambleText,
+} from "animejs";
+import "@/App.css";
+import { useEffect, useRef, useState } from "react";
 
 function App() {
-  const [count, setCount] = useState(0)
+  const root = useRef(null);
+  const scope = useRef<ReturnType<typeof createScope> | null>(null);
+  const cursorTracker = useRef(null);
+  const textCursorOne = useRef(null);
+  const intro = useRef(null);
+  const greetings = useRef(null);
+  const [gridSize, setGridSize] = useState({ cols: 24, rows: 24 });
+
+  useEffect(() => {
+    const calculateGrid = () => {
+      const minCellSize = 50; // Minimum cell size in pixels
+      const cols = Math.floor(window.innerWidth / minCellSize);
+      const rows = Math.floor(window.innerHeight / minCellSize);
+      setGridSize({ cols, rows });
+    };
+
+    calculateGrid();
+    window.addEventListener("resize", calculateGrid);
+    return () => window.removeEventListener("resize", calculateGrid);
+  }, []);
+
+  useEffect(() => {
+    if (!root.current) return;
+
+    scope.current = createScope({ root: root.current }).add(() => {
+      // Split the text after the component has mounted
+      const { chars } = splitText("h1", { words: false, chars: true });
+
+      // Typing effect for intro
+      if (intro.current) {
+        animate(intro.current, {
+          innerHTML: scrambleText({
+            cursor: "█",
+            override: " ",
+            duration: 2000,
+          }),
+        });
+      }
+
+      if (greetings.current) {
+        animate(greetings.current, {
+          innerHTML: scrambleText({
+            text: "How are you",
+            cursor: "█",
+            override: " ",
+            duration: 2000,
+            delay: 2500,
+          }),
+        });
+      }
+
+      // Existing h1 animation (starts after both intro and greeting finish)
+      animate(chars, {
+        // Property keyframes
+        y: [
+          { to: "-2.75rem", ease: "outExpo", duration: 600 },
+          { to: 0, ease: "outBounce", duration: 800, delay: 100 },
+        ],
+        // Property specific parameters
+        rotate: {
+          from: "-1turn",
+          delay: 700,
+        },
+        delay: stagger(50, { from: 0, start: 100 }),
+        ease: "inOutCirc",
+        loopDelay: 1000,
+        loop: true,
+      });
+
+      createDraggable("#ball", {
+        container: [0, 0, 0, 0],
+        releaseEase: spring({ bounce: 0.7 }),
+      });
+    });
+
+    return () => scope.current?.revert();
+  }, []);
+
+  useEffect(() => {
+    const handleMouseMove = (e: MouseEvent) => {
+      if (cursorTracker.current) {
+        animate(cursorTracker.current, {
+          left: e.clientX,
+          top: e.clientY,
+          ease: "out(3)",
+        });
+      }
+    };
+
+    window.addEventListener("mousemove", handleMouseMove);
+    return () => window.removeEventListener("mousemove", handleMouseMove);
+  }, []);
 
   return (
-    <>
-      <section id="center">
-        <div className="hero">
-          <img src={heroImg} className="base" width="170" height="179" alt="" />
-          <img src={reactLogo} className="framework" alt="React logo" />
-          <img src={viteLogo} className="vite" alt="Vite logo" />
-        </div>
-        <div>
-          <h1>Get started</h1>
-          <p>
-            Edit <code>src/App.tsx</code> and save to test <code>HMR</code>
+    <main
+      ref={root}
+      className='h-svh w-full bg-[#0a0f0a] relative overflow-hidden isolate'
+    >
+      <div
+        ref={cursorTracker}
+        className='absolute pointer-events-none z-0 w-0 h-0'
+      >
+        <div className='absolute -translate-x-1/2 -translate-y-1/2 bg-green-500 size-96 rounded-full blur-3xl opacity-60' />
+        <div className='absolute -translate-x-1/2 -translate-y-1/2 bg-green-400 size-64 rounded-full blur-2xl opacity-50' />
+        <div className='absolute -translate-x-1/2 -translate-y-1/2 bg-green-300 size-40 rounded-full blur-xl opacity-40' />
+      </div>
+
+      <div
+        className='absolute inset-0 grid gap-px z-10'
+        style={{
+          gridTemplateColumns: `repeat(${gridSize.cols}, 1fr)`,
+          gridTemplateRows: `repeat(${gridSize.rows}, 1fr)`,
+        }}
+      >
+        {Array.from({ length: gridSize.cols * gridSize.rows }).map((_, i) => (
+          <div
+            key={i}
+            className='aspect-square bg-black border border-green-950/30'
+            onClick={() => console.log(`Cell ${i} clicked`)}
+          />
+        ))}
+      </div>
+
+      <div className='relative z-10 h-full flex flex-col justify-center items-center pointer-events-none'>
+        <div className='flex items-center justify-center pt-4'>
+          <p ref={intro} className='text-green-400 font-mono text-lg mb-2'>
+            Hello, I am Ahmad Jinadu
           </p>
         </div>
-        <button
-          type="button"
-          className="counter"
-          onClick={() => setCount((count) => count + 1)}
-        >
-          Count is {count}
-        </button>
-      </section>
-
-      <div className="ticks"></div>
-
-      <section id="next-steps">
-        <div id="docs">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#documentation-icon"></use>
-          </svg>
-          <h2>Documentation</h2>
-          <p>Your questions, answered</p>
-          <ul>
-            <li>
-              <a href="https://vite.dev/" target="_blank">
-                <img className="logo" src={viteLogo} alt="" />
-                Explore Vite
-              </a>
-            </li>
-            <li>
-              <a href="https://react.dev/" target="_blank">
-                <img className="button-icon" src={reactLogo} alt="" />
-                Learn more
-              </a>
-            </li>
-          </ul>
+        <div className='grid flex-1 place-items-center'>
+          <h1 className='text-3xl max-md:text-2xl text-green-400 font-mono font-bold tracking-wider drop-shadow-[0_0_10px_rgba(34,197,94,0.8)]'>
+            WELCOME TO THE MATRICKS
+          </h1>
         </div>
-        <div id="social">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#social-icon"></use>
-          </svg>
-          <h2>Connect with us</h2>
-          <p>Join the Vite community</p>
-          <ul>
-            <li>
-              <a href="https://github.com/vitejs/vite" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#github-icon"></use>
-                </svg>
-                GitHub
-              </a>
-            </li>
-            <li>
-              <a href="https://chat.vite.dev/" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#discord-icon"></use>
-                </svg>
-                Discord
-              </a>
-            </li>
-            <li>
-              <a href="https://x.com/vite_js" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#x-icon"></use>
-                </svg>
-                X.com
-              </a>
-            </li>
-            <li>
-              <a href="https://bsky.app/profile/vite.dev" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#bluesky-icon"></use>
-                </svg>
-                Bluesky
-              </a>
-            </li>
-          </ul>
-        </div>
-      </section>
 
-      <div className="ticks"></div>
-      <section id="spacer"></section>
-    </>
-  )
+        <div className='flex-1'>
+          <div
+            id='ball'
+            className='size-10 rounded-full bg-green-500 shadow-[0_0_20px_rgba(34,197,94,0.6)] pointer-events-auto'
+          />
+        </div>
+      </div>
+    </main>
+  );
 }
 
-export default App
+export default App;
