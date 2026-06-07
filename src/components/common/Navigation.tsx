@@ -12,7 +12,7 @@ const Navigation = () => {
   ];
 
   return (
-    <nav className='fixed top-0 left-0 right-0 z-50 p-6'>
+    <nav className='fixed bottom-0 left-0 right-0 z-50 p-6'>
       <ul className='flex gap-6 justify-center'>
         {navItems.map((item) => (
           <li key={item.path}>

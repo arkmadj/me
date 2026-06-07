@@ -1,14 +1,14 @@
-import { animate } from "animejs";
+import { animate, stagger } from "animejs";
 import { useEffect, useRef, useState } from "react";
 import { Outlet } from "react-router-dom";
 import SplashScreen from "@/components/common/SplashScreen";
 import Navigation from "@/components/common/Navigation";
 
 const Layout = () => {
-  const root = useRef(null);
   const cursorTracker = useRef(null);
+  const cellRefs = useRef<(HTMLDivElement | null)[]>([]);
   const [gridSize, setGridSize] = useState({ cols: 24, rows: 24 });
-  const [showSplash, setShowSplash] = useState(false);
+  const [showSplash, setShowSplash] = useState(true);
 
   useEffect(() => {
     const calculateGrid = () => {
@@ -38,13 +38,60 @@ const Layout = () => {
     return () => window.removeEventListener("mousemove", handleMouseMove);
   }, []);
 
+  const handleCellClick = (index: number) => () => {
+    const cells = cellRefs.current.filter((cell) => cell !== null);
+    if (cells.length === 0) return;
+
+    // Animate all cells with stagger based on grid position
+    animate(cells, {
+      keyframes: [
+        {
+          x: stagger("-.175rem", {
+            grid: [gridSize.cols, gridSize.rows],
+            from: index,
+            axis: "x",
+          }),
+          y: stagger("-.175rem", {
+            grid: [gridSize.cols, gridSize.rows],
+            from: index,
+            axis: "y",
+          }),
+          duration: 200,
+        },
+        {
+          x: stagger(".125rem", {
+            grid: [gridSize.cols, gridSize.rows],
+            from: index,
+            axis: "x",
+          }),
+          y: stagger(".125rem", {
+            grid: [gridSize.cols, gridSize.rows],
+            from: index,
+            axis: "y",
+          }),
+          scale: 1.5,
+          duration: 500,
+        },
+        {
+          x: 0,
+          y: 0,
+          scale: 1,
+          duration: 600,
+        },
+      ],
+      delay: stagger(50, {
+        grid: [gridSize.cols, gridSize.rows],
+        from: index,
+      }),
+    });
+  };
+
   if (showSplash) {
     return <SplashScreen onComplete={() => setShowSplash(false)} />;
   }
 
   return (
     <div
-      ref={root}
       className='h-svh w-full bg-[#0a0f0a] relative overflow-hidden isolate'
     >
       {/* Cursor tracking glow effect */}
@@ -68,16 +115,20 @@ const Layout = () => {
         {Array.from({ length: gridSize.cols * gridSize.rows }).map((_, i) => (
           <div
             key={i}
+            ref={(el) => {
+              cellRefs.current[i] = el;
+            }}
             className='aspect-square bg-black border border-green-950/30'
+            onClick={handleCellClick(i)}
           />
         ))}
       </div>
 
       {/* Navigation */}
-      <Navigation />
 
       {/* Main content area - rendered by React Router */}
       <Outlet />
+      <Navigation />
     </div>
   );
 };
