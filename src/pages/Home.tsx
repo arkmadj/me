@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   animate,
   createScope,
@@ -24,6 +24,8 @@ const Home = () => {
   const batAnimationFrame = useRef<number | null>(null);
   const isTouching = useRef(false);
   const touchStartX = useRef(0);
+  const [showBat, setShowBat] = useState<boolean>(false);
+  const batEntryAnimated = useRef(false);
 
   useEffect(() => {
     if (!root.current) return;
@@ -59,6 +61,8 @@ const Home = () => {
               y: draggable.y,
             };
 
+            setShowBat(true)
+
             // Calculate drag distance
             const dragX = dragEnd.current.x - dragStart.current.x;
             const dragY = dragEnd.current.y - dragStart.current.y;
@@ -69,7 +73,7 @@ const Home = () => {
             let velocityY = -dragY * velocityMultiplier;
 
             // Clamp velocity to maximum speed
-            const maxSpeed = 5; // Maximum pixels per frame
+            const maxSpeed = window.innerWidth > 1920 ? 8 : 8; // Maximum pixels per frame
             const currentSpeed = Math.sqrt(velocityX * velocityX + velocityY * velocityY);
             if (currentSpeed > maxSpeed) {
               const scale = maxSpeed / currentSpeed;
@@ -143,7 +147,7 @@ const Home = () => {
 
                 // Clamp total velocity to max speed
                 const currentSpeed = Math.sqrt(velocityX * velocityX + velocityY * velocityY);
-                const maxSpeed = 10;
+                const maxSpeed = window.innerWidth > 1920 ? 8 : 8;
                 if (currentSpeed > maxSpeed) {
                   const scale = maxSpeed / currentSpeed;
                   velocityX *= scale;
@@ -257,6 +261,20 @@ const Home = () => {
   };
 
   useEffect(() => {
+    if (showBat && bat.current && !batEntryAnimated.current) {
+      batEntryAnimated.current = true;
+
+      animate(bat.current, {
+        scale: {
+          from: 0,
+          to: 1,
+          ease: spring({ bounce: 0.4, duration: 300 }),
+        },
+      });
+    }
+  }, [showBat]);
+
+  useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') {
         e.preventDefault();
@@ -355,7 +373,8 @@ const Home = () => {
       </div>
       <div
         ref={bat}
-        className="w-40 max-md:w-20 h-6 bg-green-500 rounded-lg shadow-[0_0_20px_rgba(34,197,94,0.6)] absolute bottom-6 left-1/2 -translate-x-1/2"
+        className="w-40 max-md:w-20 h-6 bg-green-500 rounded-lg shadow-[0_0_20px_rgba(34,197,94,0.6)] absolute bottom-6 left-1/2 -translate-x-1/2 origin-bottom"
+        style={{ transform: 'scale(0)' }}
       />
     </main>
   );
