@@ -92,7 +92,7 @@ const Layout = () => {
 
   return (
     <div
-      className='h-svh w-full bg-[#0a0f0a] relative overflow-hidden isolate'
+      className='h-svh w-full bg-[#0a0f0a] relative overflow-hidden isolate overscroll-none'
     >
       {/* Cursor tracking glow effect */}
       <div
