@@ -3,12 +3,16 @@ import { useEffect, useRef, useState } from "react";
 import { Outlet } from "react-router-dom";
 import SplashScreen from "@/components/common/SplashScreen";
 import Navigation from "@/components/common/Navigation";
+import GameOverlay from "@/components/common/GameOverlay";
+import { useContext } from "react";
+import { GameContext } from "@/context/GameContext";
 
 const Layout = () => {
   const cursorTracker = useRef(null);
   const cellRefs = useRef<(HTMLDivElement | null)[]>([]);
   const [gridSize, setGridSize] = useState({ cols: 24, rows: 24 });
   const [showSplash, setShowSplash] = useState(true);
+  const gameState = useContext(GameContext);
 
   useEffect(() => {
     const calculateGrid = () => {
@@ -91,9 +95,7 @@ const Layout = () => {
   }
 
   return (
-    <div
-      className='h-svh w-full bg-[#0a0f0a] relative overflow-hidden isolate overscroll-none'
-    >
+    <div className='h-svh w-full bg-[#0a0f0a] relative overflow-hidden isolate overscroll-none'>
       {/* Cursor tracking glow effect */}
       <div
         ref={cursorTracker}
@@ -126,6 +128,7 @@ const Layout = () => {
 
       {/* Navigation */}
 
+      {gameState === "paused" ? <GameOverlay /> : null}
       {/* Main content area - rendered by React Router */}
       <Outlet />
       <Navigation />
