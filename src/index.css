@@ -1,2 +1,6 @@
 @import "tailwindcss";
 
+* {
+  overscroll-behavior: none;
+  user-select: none;
+}

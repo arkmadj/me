@@ -3,12 +3,15 @@ import { useEffect, useRef, useState } from "react";
 import { Outlet } from "react-router-dom";
 import SplashScreen from "@/components/common/SplashScreen";
 import Navigation from "@/components/common/Navigation";
+import GameOverlay from "@/components/common/GameOverlay";
+import { GameProvider, useGame } from "@/context";
 
-const Layout = () => {
+const LayoutContent = () => {
   const cursorTracker = useRef(null);
   const cellRefs = useRef<(HTMLDivElement | null)[]>([]);
   const [gridSize, setGridSize] = useState({ cols: 24, rows: 24 });
   const [showSplash, setShowSplash] = useState(true);
+  const { gameState } = useGame();
 
   useEffect(() => {
     const calculateGrid = () => {
@@ -91,9 +94,7 @@ const Layout = () => {
   }
 
   return (
-    <div
-      className='h-svh w-full bg-[#0a0f0a] relative overflow-hidden isolate'
-    >
+    <div className='h-svh w-full bg-[#0a0f0a] relative overflow-hidden isolate overscroll-none'>
       {/* Cursor tracking glow effect */}
       <div
         ref={cursorTracker}
@@ -124,12 +125,21 @@ const Layout = () => {
         ))}
       </div>
 
-      {/* Navigation */}
-
+      {/* Overlay */}
+      {(gameState === "paused" || gameState === "over") && <GameOverlay />}
       {/* Main content area - rendered by React Router */}
       <Outlet />
-      <Navigation />
+      {/* Navigation */}
+      {<Navigation />}
     </div>
+  );
+};
+
+const Layout = () => {
+  return (
+    <GameProvider>
+      <LayoutContent />
+    </GameProvider>
   );
 };
 
