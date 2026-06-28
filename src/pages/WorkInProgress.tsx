@@ -5,10 +5,8 @@ import MatrixRain from '@/components/common/MatrixRain';
 const WorkInProgress = () => {
   return (
     <div className='relative z-10 h-full overflow-hidden'>
-      {/* Matrix background */}
       <MatrixRain className='absolute inset-0 z-0' />
-
-      {/* Content overlay */}
+      
       <main className='relative z-10 h-full flex flex-col items-center justify-center gap-6'>
         <h1 className='text-6xl text-green-400 font-mono font-bold drop-shadow-[0_0_10px_rgba(34,197,94,0.8)]'>
           WIP
