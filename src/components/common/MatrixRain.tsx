@@ -1,14 +1,15 @@
-import { useEffect, useRef } from 'react';
+import { forwardRef, useEffect, useRef } from 'react';
 
 interface MatrixRainProps {
   className?: string;
 }
 
-const MatrixRain = ({ className = '' }: MatrixRainProps) => {
-  const canvasRef = useRef<HTMLCanvasElement>(null);
+const MatrixRain = forwardRef<HTMLCanvasElement, MatrixRainProps>(
+  ({ className = '' }, ref) => {
+    const internalRef = useRef<HTMLCanvasElement>(null);
 
-  useEffect(() => {
-    const canvas = canvasRef.current;
+    useEffect(() => {
+      const canvas = internalRef.current;
     if (!canvas) return;
 
     const ctx = canvas.getContext('2d');
@@ -74,10 +75,19 @@ const MatrixRain = ({ className = '' }: MatrixRainProps) => {
 
   return (
     <canvas
-      ref={canvasRef}
+      ref={(node) => {
+        internalRef.current = node;
+        if (typeof ref === 'function') {
+          ref(node);
+        } else if (ref) {
+          (ref as React.RefObject<HTMLCanvasElement | null>).current = node;
+        }
+      }}
       className={className}
     />
   );
-};
+});
+
+MatrixRain.displayName = 'MatrixRain';
 
 export default MatrixRain;
