@@ -1,0 +1,175 @@
+import { useCallback } from "react";
+import { createDraggable } from "animejs";
+import type { Velocity, Position } from "../types";
+import { getResponsiveValues, getBatY, PHYSICS } from "../constants";
+import { clampVelocity } from "../utils";
+import { usePhysicsEngine } from "./usePhysicsEngine";
+
+interface UseBallAnimationProps {
+  ballRef: React.RefObject<HTMLDivElement | null>;
+  ballDraggable: React.RefObject<ReturnType<typeof createDraggable> | null>;
+  charRefs: React.RefObject<(HTMLSpanElement | null)[]>;
+  charHit: React.RefObject<boolean[]>;
+  charVelocities: React.RefObject<{ vx: number; vy: number; vr: number }[]>;
+  charPositions: React.RefObject<{ x: number; y: number; rotation: number }[]>;
+  batPositionRef: React.RefObject<number>;
+  gameStateRef: React.RefObject<string>;
+}
+
+export const useBallAnimation = ({
+  ballRef,
+  ballDraggable,
+  charRefs,
+  charHit,
+  charVelocities,
+  charPositions,
+  batPositionRef,
+  gameStateRef,
+}: UseBallAnimationProps) => {
+  const physics = usePhysicsEngine({
+    charRefs,
+    charHit,
+    charVelocities,
+    charPositions,
+    batPositionRef,
+  });
+
+  // Destructure physics properties
+  const {
+    animationFrame: animationFrameRef,
+    ballPosition: ballPositionRef,
+    ballVelocity: ballVelocityRef,
+    checkBatCollision,
+    checkCharacterCollisions,
+    updateCharacterPhysics,
+    checkBoundaryCollisions,
+  } = physics;
+
+  const animateBall = useCallback((
+    initialPos: Position,
+    initialVel: Velocity
+  ) => {
+    let currentX = initialPos.x;
+    let currentY = initialPos.y;
+    let velocityX = initialVel.vx;
+    let velocityY = initialVel.vy;
+
+    const { ballSize, batWidth, screenHeight } = getResponsiveValues();
+    const batHeight = 24;
+    const batY = getBatY(screenHeight, batHeight);
+
+    const animateBounce = () => {
+      // Check if game is paused
+      if (gameStateRef.current === "paused") {
+        ballPositionRef.current = { x: currentX, y: currentY };
+        ballVelocityRef.current = { vx: velocityX, vy: velocityY };
+        animationFrameRef.current = requestAnimationFrame(animateBounce);
+        return;
+      }
+
+      // Update position
+      currentX += velocityX;
+      currentY += velocityY;
+
+      // Calculate ball bounds
+      const ballBounds = {
+        bottom: currentY + ballSize / 2,
+        top: currentY - ballSize / 2,
+        left: currentX - ballSize / 2,
+        right: currentX + ballSize / 2,
+      };
+
+      // Calculate bat bounds
+      const batBounds = {
+        left: batPositionRef.current - batWidth / 2,
+        right: batPositionRef.current + batWidth / 2,
+        top: batY - batHeight / 2,
+        bottom: batY + batHeight / 2,
+      };
+
+      // Check bat collision
+      const batCollision = checkBatCollision(
+        ballBounds,
+        batBounds,
+        { x: currentX, y: currentY },
+        { vx: velocityX, vy: velocityY }
+      );
+
+      if (batCollision.collision && batCollision.newY && batCollision.newVelocity) {
+        currentY = batCollision.newY;
+        velocityX = batCollision.newVelocity.vx;
+        velocityY = batCollision.newVelocity.vy;
+      }
+
+      // Check character collisions
+      const charCollisionVel = checkCharacterCollisions(
+        { x: currentX, y: currentY },
+        { vx: velocityX, vy: velocityY }
+      );
+      velocityX = charCollisionVel.vx;
+      velocityY = charCollisionVel.vy;
+
+      // Update character physics
+      updateCharacterPhysics();
+
+      // Check boundary collisions
+      const { newPos, newVel: boundaryVel } = checkBoundaryCollisions(
+        { x: currentX, y: currentY },
+        { vx: velocityX, vy: velocityY }
+      );
+      currentX = newPos.x;
+      currentY = newPos.y;
+      velocityX = boundaryVel.vx;
+      velocityY = boundaryVel.vy;
+
+      // Store current state
+      ballPositionRef.current = { x: currentX, y: currentY };
+      ballVelocityRef.current = { vx: velocityX, vy: velocityY };
+
+      // Update ball visual position
+      if (ballRef.current && ballDraggable.current) {
+        ballRef.current.style.transform = `translate(${currentX}px, ${currentY}px)`;
+        ballDraggable.current.x = currentX;
+        ballDraggable.current.y = currentY;
+      }
+
+      // Continue animation
+      animationFrameRef.current = requestAnimationFrame(animateBounce);
+    };
+
+    // Start animation
+    animationFrameRef.current = requestAnimationFrame(animateBounce);
+  }, [
+    animationFrameRef,
+    ballPositionRef,
+    ballVelocityRef,
+    checkBatCollision,
+    checkCharacterCollisions,
+    updateCharacterPhysics,
+    checkBoundaryCollisions,
+    ballRef,
+    ballDraggable,
+    batPositionRef,
+    gameStateRef,
+  ]);
+
+  const calculateLaunchVelocity = useCallback((
+    dragStart: Position,
+    dragEnd: Position
+  ): Velocity => {
+    const dragX = dragEnd.x - dragStart.x;
+    const dragY = dragEnd.y - dragStart.y;
+
+    // Calculate catapult velocity
+    const velocityX = -dragX * PHYSICS.VELOCITY_MULTIPLIER;
+    const velocityY = -dragY * PHYSICS.VELOCITY_MULTIPLIER;
+
+    return clampVelocity({ vx: velocityX, vy: velocityY });
+  }, []);
+
+  return {
+    animateBall,
+    calculateLaunchVelocity,
+    animationFrame: animationFrameRef,
+  };
+};
