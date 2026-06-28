@@ -4,15 +4,14 @@ import { Outlet } from "react-router-dom";
 import SplashScreen from "@/components/common/SplashScreen";
 import Navigation from "@/components/common/Navigation";
 import GameOverlay from "@/components/common/GameOverlay";
-import { useContext } from "react";
-import { GameContext } from "@/context/GameContext";
+import { GameProvider, useGame } from "@/context";
 
-const Layout = () => {
+const LayoutContent = () => {
   const cursorTracker = useRef(null);
   const cellRefs = useRef<(HTMLDivElement | null)[]>([]);
   const [gridSize, setGridSize] = useState({ cols: 24, rows: 24 });
   const [showSplash, setShowSplash] = useState(true);
-  const gameState = useContext(GameContext);
+  const { gameState } = useGame();
 
   useEffect(() => {
     const calculateGrid = () => {
@@ -126,13 +125,21 @@ const Layout = () => {
         ))}
       </div>
 
+      {/* Overlay */}
+      {(gameState === "paused" || gameState === "over") && <GameOverlay />}
       {/* Navigation */}
-
-      {gameState === "paused" ? <GameOverlay /> : null}
       {/* Main content area - rendered by React Router */}
       <Outlet />
       <Navigation />
     </div>
+  );
+};
+
+const Layout = () => {
+  return (
+    <GameProvider>
+      <LayoutContent />
+    </GameProvider>
   );
 };
 
