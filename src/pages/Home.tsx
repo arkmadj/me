@@ -367,7 +367,7 @@ const Home = () => {
     if (!bat.current) return;
 
     const moveSpeed = window.innerWidth < 768 ? 5 : 7; // Pixels per frame for smooth movement
-    const batWidth = window.innerWidth < 768 ? 80 : 160; // max-md:w-20 = 80px, w-40 = 160px
+    const batWidth = window.innerWidth < 768 ? 80 : window.innerWidth / 6; // max-md:w-20 = 80px, w-1/6 = 16.67% screen width
     const screenWidth = window.innerWidth;
     const maxPosition = screenWidth / 2 - batWidth / 2;
     const minPosition = -screenWidth / 2 + batWidth / 2;
@@ -423,7 +423,7 @@ const Home = () => {
     let velocityY = -7;
 
     const ballSize = window.innerWidth < 768 ? 32 : 40;
-    const batWidth = window.innerWidth < 768 ? 80 : 160;
+    const batWidth = window.innerWidth < 768 ? 80 : window.innerWidth / 6;
     const batHeight = 24;
     const screenWidth = window.innerWidth;
     const screenHeight = window.innerHeight;
@@ -641,7 +641,7 @@ const Home = () => {
       const relativeX = touchX - centerX;
 
       // Clamp to boundaries
-      const batWidth = window.innerWidth < 768 ? 80 : 160;
+      const batWidth = window.innerWidth < 768 ? 80 : window.innerWidth / 6;
       const maxPosition = screenWidth / 2 - batWidth / 2;
       const minPosition = -screenWidth / 2 + batWidth / 2;
 
