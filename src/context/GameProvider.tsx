@@ -30,7 +30,7 @@ export const GameProvider = ({ children }: GameProviderProps) => {
   };
 
   const resetGame = () => {
-    setGameState('paused');
+    setGameState('new');
     setScore(INITIAL_SCORE);
     setLives(INITIAL_LIVES);
   };

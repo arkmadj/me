@@ -15,7 +15,6 @@ const GameOverlay = () => {
 
   const handleClose = () => {
     resetGame();
-    setGameState("new");
   };
 
   if (gameState === "over") {

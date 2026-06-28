@@ -2,6 +2,7 @@ import { createBrowserRouter, type RouteObject } from 'react-router-dom';
 import Layout from '@/components/layout/Layout';
 import Home from '@/pages/Home';
 import NotFound from '@/pages/NotFound';
+import WorkInProgress from '@/pages/WorkInProgress';
 
 // Define your routes configuration
 export const routes: RouteObject[] = [
@@ -24,7 +25,7 @@ export const routes: RouteObject[] = [
       // },
       {
         path: '*',
-        element: <NotFound />,
+        element: <WorkInProgress />,
       },
     ],
   },

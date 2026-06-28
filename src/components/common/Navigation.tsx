@@ -6,7 +6,7 @@ import { useGame } from '@/context';
 
 const Navigation = () => {
   const location = useLocation();
-  const { gameState } = useGame();
+  const { gameState, resetGame } = useGame();
   const navRef = useRef<HTMLElement>(null);
   const navItemRefs = useRef<(HTMLLIElement | null)[]>([]);
   const previousGameState = useRef(gameState);
@@ -67,6 +67,7 @@ const Navigation = () => {
     previousGameState.current = gameState;
   }, [gameState, animateNavItems]);
 
+
   return (
     <nav ref={navRef} className='fixed bottom-0 left-0 right-0 z-50 p-6'>
       <ul className='flex gap-6 justify-center'>
@@ -88,6 +89,7 @@ const Navigation = () => {
                   : ''
                 }
               `}
+              onClick={resetGame}
             >
               {item.label}
             </Link>
