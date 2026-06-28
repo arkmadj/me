@@ -5,8 +5,8 @@
 export const ROUTES = {
   HOME: '/',
   // Add more routes here as needed
-  // ABOUT: '/about',
-  // PROJECTS: '/projects',
+  ABOUT: '/about',
+  PROJECTS: '/projects',
   // CONTACT: '/contact',
   // BLOG: '/blog',
   // PROJECT_DETAIL: (id: string) => `/projects/${id}`,
