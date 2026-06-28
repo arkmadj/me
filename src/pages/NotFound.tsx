@@ -8,7 +8,7 @@ const NotFound = () => {
         404
       </h1>
       <p className='text-green-400 font-mono text-lg'>
-        Page not found in the Matrix
+        You can't defeat the matrix that easily
       </p>
       <Link
         to={ROUTES.HOME}
