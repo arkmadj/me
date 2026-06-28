@@ -1,10 +1,11 @@
 import { useRef, useCallback, useEffect } from "react";
 import { getResponsiveValues } from "../constants";
+import type { GameState } from "@/context";
 
 interface UseBatControlsProps {
   batRef: React.RefObject<HTMLDivElement | null>;
   batPositionRef: React.RefObject<number>;
-  gameStateRef: React.RefObject<string>;
+  gameStateRef: React.RefObject<GameState>;
 }
 
 export const useBatControls = ({
@@ -131,12 +132,36 @@ export const useBatControls = ({
     isTouching.current = false;
   }, []);
 
+  const resetBatControls = useCallback(() => {
+    // Clear all pressed keys
+    keysPressed.current.clear();
+
+    // Cancel any ongoing animation frames
+    if (batAnimationFrame.current) {
+      cancelAnimationFrame(batAnimationFrame.current);
+      batAnimationFrame.current = null;
+    }
+
+    // Reset bat position to center
+    batPositionRef.current = 0;
+
+    // Reset touch state
+    isTouching.current = false;
+    touchStartX.current = 0;
+
+    // Update visual position
+    if (batRef.current) {
+      batRef.current.style.transform = `translateX(0px) scale(0)`;
+    }
+  }, [batRef, batPositionRef]);
+
   return {
     handleKeyDown,
     handleKeyUp,
     handleTouchStart,
     handleTouchMove,
     handleTouchEnd,
+    resetBatControls,
     batAnimationFrame,
   };
 };

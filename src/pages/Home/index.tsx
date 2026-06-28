@@ -1,5 +1,11 @@
-import { useEffect, useRef, useState, useCallback } from "react";
-import { animate, createScope, createDraggable, spring, scrambleText } from "animejs";
+import { useEffect, useRef, useCallback } from "react";
+import {
+  animate,
+  createScope,
+  createDraggable,
+  spring,
+  scrambleText,
+} from "animejs";
 import { useGame } from "@/context";
 import { WELCOME_TEXT, INTRO_TEXT, ANIMATION_TIMINGS } from "./constants";
 import { useBallAnimation } from "./hooks/useBallAnimation";
@@ -29,12 +35,12 @@ const Home = () => {
   const charPositions = useRef<{ x: number; y: number; rotation: number }[]>(
     Array(WELCOME_TEXT.length)
       .fill(null)
-      .map(() => ({ x: 0, y: 0, rotation: 0 }))
+      .map(() => ({ x: 0, y: 0, rotation: 0 })),
   );
   const charVelocities = useRef<{ vx: number; vy: number; vr: number }[]>(
     Array(WELCOME_TEXT.length)
       .fill(null)
-      .map(() => ({ vx: 0, vy: 0, vr: 0 }))
+      .map(() => ({ vx: 0, vy: 0, vr: 0 })),
   );
   const charHit = useRef<boolean[]>(Array(WELCOME_TEXT.length).fill(false));
 
@@ -42,7 +48,7 @@ const Home = () => {
   const batPositionRef = useRef(0);
   const { gameState, setGameState } = useGame();
   const gameStateRef = useRef(gameState);
-  const [showBat, setShowBat] = useState<boolean>(false);
+  const showBat = gameState === 'running';
 
   // Custom hooks (physics engine doesn't need ballRef, gameStateRef, or ballDraggable)
   const ballAnimation = useBallAnimation({
@@ -54,6 +60,7 @@ const Home = () => {
     charPositions,
     batPositionRef,
     gameStateRef,
+    welcomeAnimationComplete,
   });
 
   const batControls = useBatControls({
@@ -66,7 +73,6 @@ const Home = () => {
   const launchBall = useCallback(() => {
     if (!ball.current) return;
 
-    setShowBat(true);
     setGameState("running");
 
     isAnimating.current = true;
@@ -91,6 +97,36 @@ const Home = () => {
   useEffect(() => {
     gameStateRef.current = gameState;
   }, [gameState]);
+
+  // Handle game reset - reset all game elements when game state changes to 'new'
+  useEffect(() => {
+    if (gameState === 'new') {
+      // Reset bat controls
+      batControls.resetBatControls();
+
+      // Reset ball animation
+      ballAnimation.resetBallAnimation();
+
+      // Reset animation state
+      isAnimating.current = false;
+
+      // Reset character states
+      charHit.current.fill(false);
+      charPositions.current = Array(WELCOME_TEXT.length)
+        .fill(null)
+        .map(() => ({ x: 0, y: 0, rotation: 0 }));
+      charVelocities.current = Array(WELCOME_TEXT.length)
+        .fill(null)
+        .map(() => ({ vx: 0, vy: 0, vr: 0 }));
+
+      // Reset character visual positions
+      charRefs.current.forEach((charEl) => {
+        if (charEl) {
+          charEl.style.transform = 'translate(0px, 0px)';
+        }
+      });
+    }
+  }, [gameState, batControls, ballAnimation]);
 
   // Initial animations setup
   useEffect(() => {
@@ -118,12 +154,11 @@ const Home = () => {
           },
           onRelease: (draggable) => {
             dragEnd.current = { x: draggable.x, y: draggable.y };
-            setShowBat(true);
             setGameState("running");
 
             const velocity = ballAnimation.calculateLaunchVelocity(
               dragStart.current,
-              dragEnd.current
+              dragEnd.current,
             );
 
             isAnimating.current = true;
@@ -162,7 +197,9 @@ const Home = () => {
               from: 0,
               to: 1,
               duration: ANIMATION_TIMINGS.CHAR_DURATION,
-              delay: ANIMATION_TIMINGS.CHAR_START + index * ANIMATION_TIMINGS.CHAR_DELAY,
+              delay:
+                ANIMATION_TIMINGS.CHAR_START +
+                index * ANIMATION_TIMINGS.CHAR_DELAY,
             },
           });
         }
@@ -191,7 +228,12 @@ const Home = () => {
   // Event listeners for controls - these handlers are stable
   useEffect(() => {
     const { handleKeyDown, handleKeyUp } = gameControls;
-    const { handleTouchStart, handleTouchMove, handleTouchEnd, batAnimationFrame } = batControls;
+    const {
+      handleTouchStart,
+      handleTouchMove,
+      handleTouchEnd,
+      batAnimationFrame,
+    } = batControls;
 
     window.addEventListener("keydown", handleKeyDown);
     window.addEventListener("keyup", handleKeyUp);
@@ -216,16 +258,19 @@ const Home = () => {
   }, []);
 
   return (
-    <main ref={root} className="relative z-10 h-full flex flex-col pointer-events-none">
-      <div className="flex items-center justify-center pt-4">
-        <p ref={intro} className="text-green-400 font-mono text-lg mb-2"></p>
+    <main
+      ref={root}
+      className='relative z-10 h-full flex flex-col pointer-events-none'
+    >
+      <div className='flex items-center justify-center pt-4'>
+        <p ref={intro} className='text-green-400 font-mono text-lg mb-2' />
       </div>
 
-      <div className="grid place-items-center mt-52">
+      <div className='grid place-items-center mt-52'>
         <AnimatedText
           text={WELCOME_TEXT}
           charRefs={charRefs}
-          className="text-3xl max-md:text-2xl text-green-400 font-mono font-bold tracking-wider drop-shadow-[0_0_10px_rgba(34,197,94,0.8)] relative"
+          className='text-3xl max-md:text-2xl text-green-400 font-mono font-bold tracking-wider drop-shadow-[0_0_10px_rgba(34,197,94,0.8)] relative'
         />
       </div>
 

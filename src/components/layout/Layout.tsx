@@ -126,11 +126,11 @@ const LayoutContent = () => {
       </div>
 
       {/* Overlay */}
-      {(gameState === "paused" || gameState === "over") && <GameOverlay />}
+      {(gameState === "paused" || gameState === "over" || gameState === "running") && <GameOverlay />}
       {/* Main content area - rendered by React Router */}
       <Outlet />
       {/* Navigation */}
-      {<Navigation />}
+      <Navigation />
     </div>
   );
 };
