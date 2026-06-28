@@ -43,7 +43,7 @@ const GameOverlay = () => {
           <div>Score: {score}</div>
           <div>Lives: {lives}</div>
         </div>
-        <Button onClick={handleStartGame}>Start Game</Button>
+        <Button onClick={handleStartGame}>Resume Game</Button>
       </main>
     );
   }
