@@ -49,7 +49,6 @@ const Home = () => {
   const batPositionRef = useRef(0);
   const { gameState, setGameState } = useGame();
   const gameStateRef = useRef(gameState);
-  const showBat = gameState === "running";
 
   // Custom hooks (physics engine doesn't need ballRef, gameStateRef, or ballDraggable)
   const ballAnimation = useBallAnimation({
@@ -283,7 +282,7 @@ const Home = () => {
       </div>
 
       <Ball ref={ball} />
-      <Bat ref={bat} visible={showBat} />
+      <Bat ref={bat} />
     </main>
   );
 };
