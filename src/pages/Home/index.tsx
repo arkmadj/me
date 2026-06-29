@@ -14,6 +14,7 @@ import { useGameControls } from "./hooks/useGameControls";
 import { AnimatedText } from "./components/AnimatedText";
 import { Ball } from "./components/Ball";
 import { Bat } from "./components/Bat";
+import { isDeepEqual } from "@/lib/utils";
 
 const Home = () => {
   // Refs for DOM elements
@@ -48,7 +49,7 @@ const Home = () => {
   const batPositionRef = useRef(0);
   const { gameState, setGameState } = useGame();
   const gameStateRef = useRef(gameState);
-  const showBat = gameState === 'running';
+  const showBat = gameState === "running";
 
   // Custom hooks (physics engine doesn't need ballRef, gameStateRef, or ballDraggable)
   const ballAnimation = useBallAnimation({
@@ -81,7 +82,7 @@ const Home = () => {
     }
 
     // Launch with default velocity
-    ballAnimation.animateBall({ x: 0, y: 0 }, { vx: 3, vy: -7 });
+    ballAnimation.animateBall({ x: 0, y: 0 }, { vx: 0, vy: -7 });
   }, [ballAnimation, setGameState]);
 
   const gameControls = useGameControls({
@@ -100,7 +101,7 @@ const Home = () => {
 
   // Handle game reset - reset all game elements when game state changes to 'new'
   useEffect(() => {
-    if (gameState === 'new') {
+    if (gameState === "new") {
       // Reset bat controls
       batControls.resetBatControls();
 
@@ -122,7 +123,7 @@ const Home = () => {
       // Reset character visual positions
       charRefs.current.forEach((charEl) => {
         if (charEl) {
-          charEl.style.transform = 'translate(0px, 0px)';
+          charEl.style.transform = "translate(0px, 0px)";
         }
       });
     }
@@ -166,6 +167,13 @@ const Home = () => {
               ballDraggable.current.disable();
             }
 
+            if (isDeepEqual(velocity, { vx: 0, vy: 0 })) {
+              ballAnimation.animateBall(dragEnd.current, {
+                vx: 0,
+                vy: -7,
+              });
+              return;
+            }
             ballAnimation.animateBall(dragEnd.current, velocity);
           },
         });
