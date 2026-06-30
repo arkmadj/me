@@ -1,3 +1,4 @@
+"use no memo";
 import { useCallback } from "react";
 import { createDraggable } from "animejs";
 import type { Velocity, Position } from "../types";
@@ -14,6 +15,8 @@ interface UseBallAnimationProps {
   charPositions: React.RefObject<{ x: number; y: number; rotation: number }[]>;
   batPositionRef: React.RefObject<number>;
   gameStateRef: React.RefObject<string>;
+  welcomeAnimationComplete: React.RefObject<boolean>;
+  onBallHitBottom?: () => void;
 }
 
 export const useBallAnimation = ({
@@ -25,6 +28,8 @@ export const useBallAnimation = ({
   charPositions,
   batPositionRef,
   gameStateRef,
+  welcomeAnimationComplete,
+  onBallHitBottom,
 }: UseBallAnimationProps) => {
   const physics = usePhysicsEngine({
     charRefs,
@@ -113,7 +118,7 @@ export const useBallAnimation = ({
       updateCharacterPhysics();
 
       // Check boundary collisions
-      const { newPos, newVel: boundaryVel } = checkBoundaryCollisions(
+      const { newPos, newVel: boundaryVel, hitBottom } = checkBoundaryCollisions(
         { x: currentX, y: currentY },
         { vx: velocityX, vy: velocityY }
       );
@@ -121,6 +126,21 @@ export const useBallAnimation = ({
       currentY = newPos.y;
       velocityX = boundaryVel.vx;
       velocityY = boundaryVel.vy;
+
+      // Check if ball hit the bottom
+      if (hitBottom) {
+        // Stop the animation
+        if (animationFrameRef.current) {
+          cancelAnimationFrame(animationFrameRef.current);
+          animationFrameRef.current = null;
+        }
+
+        // Call the callback to handle life loss and reset
+        if (onBallHitBottom) {
+          onBallHitBottom();
+        }
+        return;
+      }
 
       // Store current state
       ballPositionRef.current = { x: currentX, y: currentY };
@@ -151,6 +171,7 @@ export const useBallAnimation = ({
     ballDraggable,
     batPositionRef,
     gameStateRef,
+    onBallHitBottom,
   ]);
 
   const calculateLaunchVelocity = useCallback((
@@ -167,9 +188,38 @@ export const useBallAnimation = ({
     return clampVelocity({ vx: velocityX, vy: velocityY });
   }, []);
 
+  const resetBallAnimation = () => {
+    // Cancel any ongoing animation
+    if (animationFrameRef.current) {
+      cancelAnimationFrame(animationFrameRef.current);
+      animationFrameRef.current = null;
+    }
+
+    // Reset ball position and velocity
+    ballPositionRef.current = { x: 0, y: 0 };
+    ballVelocityRef.current = { vx: 0, vy: 0 };
+
+    // Reset ball visual position
+    const ball = ballRef.current;
+    const draggable = ballDraggable.current;
+
+    if (ball && draggable) {
+      ball.style.transform = 'translate(0px, 0px)';
+      // Note: Mutating draggable.x and draggable.y is the intended anime.js API.
+      // Using Object.assign to satisfy React Compiler while maintaining intended behavior.
+      Object.assign(draggable, { x: 0, y: 0 });
+
+      // Only enable dragging if welcome animation has completed
+      if (welcomeAnimationComplete.current) {
+        draggable.enable();
+      }
+    }
+  };
+
   return {
     animateBall,
     calculateLaunchVelocity,
+    resetBallAnimation,
     animationFrame: animationFrameRef,
   };
 };
