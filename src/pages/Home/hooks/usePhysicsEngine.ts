@@ -125,14 +125,15 @@ export const usePhysicsEngine = ({
   const checkBoundaryCollisions = useCallback((
     pos: Position,
     vel: Velocity
-  ): { newPos: Position; newVel: Velocity } => {
+  ): { newPos: Position; newVel: Velocity; hitBottom: boolean } => {
     const { ballSize, screenWidth, screenHeight } = getResponsiveValues();
     const boundaries = getBoundaries(screenWidth, screenHeight, ballSize);
-    
+
     let newX = pos.x;
     let newY = pos.y;
     let newVx = vel.vx;
     let newVy = vel.vy;
+    let hitBottom = false;
 
     if (newX > boundaries.maxX) {
       newX = boundaries.maxX;
@@ -145,6 +146,7 @@ export const usePhysicsEngine = ({
     if (newY > boundaries.maxY) {
       newY = boundaries.maxY;
       newVy = -Math.abs(newVy);
+      hitBottom = true; // Ball touched the bottom of the screen
     } else if (newY < boundaries.minY) {
       newY = boundaries.minY;
       newVy = Math.abs(newVy);
@@ -153,6 +155,7 @@ export const usePhysicsEngine = ({
     return {
       newPos: { x: newX, y: newY },
       newVel: { vx: newVx, vy: newVy },
+      hitBottom,
     };
   }, []);
 
