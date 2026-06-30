@@ -17,7 +17,6 @@ const GameOverlay = () => {
     setGameState("paused");
   };
 
-
   if (gameState === "over") {
     return (
       <main className='h-full w-full bg-black/50 backdrop-blur-xs absolute flex flex-col items-center justify-center gap-6 z-50'>
@@ -42,9 +41,11 @@ const GameOverlay = () => {
           <div>Score: {score}</div>
           <div>Lives: {lives}</div>
         </div>
-        <div className="flex flex-col gap-4">
+        <div className='flex flex-col gap-4'>
           <Button onClick={handleStartGame}>Resume Game</Button>
-          <Button className="w-full" onClick={handleTryAgain}>Reset Game</Button>
+          <Button className='w-full' onClick={handleTryAgain}>
+            Reset Game
+          </Button>
         </div>
       </main>
     );
@@ -56,9 +57,12 @@ const GameOverlay = () => {
         <div className='flex justify-center items-center max-md:items-start gap-5'>
           <div className='flex-1 flex flex-col items-start gap-1'>
             <div className='flex justify-center items-center'>
-              <HeartFilledIcon className='size-10' color='#05df72' />
-              <HeartIcon className='size-10' color='#05df72' />
-              <HeartIcon className='size-10' color='#05df72' />
+              {Array.from({ length: lives }).map((_, i) => (
+                <HeartFilledIcon key={i} className='size-10' color='#05df72' />
+              ))}
+              {Array.from({ length: 3 - lives }).map((_, i) => (
+                <HeartIcon key={i} className='size-10' color='#05df72' />
+              ))}
             </div>
             <p className='text-2xl text-green-400 font-mono'>Score: {score}</p>
           </div>
