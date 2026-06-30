@@ -47,8 +47,14 @@ const Home = () => {
 
   // Game state
   const batPositionRef = useRef(0);
-  const { gameState, setGameState } = useGame();
+  const { gameState, setGameState, decrementLives } = useGame();
   const gameStateRef = useRef(gameState);
+
+  // Handler for when ball hits bottom
+  const handleBallHitBottom = useCallback(() => {
+    decrementLives();
+    setGameState("restart");
+  }, [decrementLives, setGameState]);
 
   // Custom hooks (physics engine doesn't need ballRef, gameStateRef, or ballDraggable)
   const ballAnimation = useBallAnimation({
@@ -61,6 +67,7 @@ const Home = () => {
     batPositionRef,
     gameStateRef,
     welcomeAnimationComplete,
+    onBallHitBottom: handleBallHitBottom,
   });
 
   const batControls = useBatControls({
@@ -98,9 +105,9 @@ const Home = () => {
     gameStateRef.current = gameState;
   }, [gameState]);
 
-  // Handle game reset - reset all game elements when game state changes to 'new'
+  // Handle game reset - reset all game elements when game state changes to 'new' or 'restart'
   useEffect(() => {
-    if (gameState === "new") {
+    if (gameState === "new" || gameState === "restart") {
       // Reset bat controls
       batControls.resetBatControls();
 
@@ -110,23 +117,36 @@ const Home = () => {
       // Reset animation state
       isAnimating.current = false;
 
-      // Reset character states
-      charHit.current.fill(false);
-      charPositions.current = Array(WELCOME_TEXT.length)
-        .fill(null)
-        .map(() => ({ x: 0, y: 0, rotation: 0 }));
-      charVelocities.current = Array(WELCOME_TEXT.length)
-        .fill(null)
-        .map(() => ({ vx: 0, vy: 0, vr: 0 }));
+      if (gameState === "new") {
+        // Reset character states
+        charHit.current.fill(false);
+        charPositions.current = Array(WELCOME_TEXT.length)
+          .fill(null)
+          .map(() => ({ x: 0, y: 0, rotation: 0 }));
+        charVelocities.current = Array(WELCOME_TEXT.length)
+          .fill(null)
+          .map(() => ({ vx: 0, vy: 0, vr: 0 }));
 
-      // Reset character visual positions
-      charRefs.current.forEach((charEl) => {
-        if (charEl) {
-          charEl.style.transform = "translate(0px, 0px)";
-        }
-      });
+        // Reset character visual positions
+        charRefs.current.forEach((charEl) => {
+          if (charEl) {
+            charEl.style.transform = "translate(0px, 0px)";
+          }
+        });
+      }
+
+      // After a restart, automatically transition to 'new' state once reset is complete
+      // This allows the ball to be draggable and ready for next launch
+      if (gameState === "restart") {
+        // Use a small delay to ensure all reset animations complete
+        const restartTimer = setTimeout(() => {
+          setGameState("new");
+        }, 100);
+
+        return () => clearTimeout(restartTimer);
+      }
     }
-  }, [gameState, batControls, ballAnimation]);
+  }, [gameState, batControls, ballAnimation, setGameState]);
 
   // Show bat when game starts
   useEffect(() => {
