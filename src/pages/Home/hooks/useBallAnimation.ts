@@ -16,6 +16,7 @@ interface UseBallAnimationProps {
   batPositionRef: React.RefObject<number>;
   gameStateRef: React.RefObject<string>;
   welcomeAnimationComplete: React.RefObject<boolean>;
+  onBallHitBottom?: () => void;
 }
 
 export const useBallAnimation = ({
@@ -28,6 +29,7 @@ export const useBallAnimation = ({
   batPositionRef,
   gameStateRef,
   welcomeAnimationComplete,
+  onBallHitBottom,
 }: UseBallAnimationProps) => {
   const physics = usePhysicsEngine({
     charRefs,
@@ -116,7 +118,7 @@ export const useBallAnimation = ({
       updateCharacterPhysics();
 
       // Check boundary collisions
-      const { newPos, newVel: boundaryVel } = checkBoundaryCollisions(
+      const { newPos, newVel: boundaryVel, hitBottom } = checkBoundaryCollisions(
         { x: currentX, y: currentY },
         { vx: velocityX, vy: velocityY }
       );
@@ -124,6 +126,21 @@ export const useBallAnimation = ({
       currentY = newPos.y;
       velocityX = boundaryVel.vx;
       velocityY = boundaryVel.vy;
+
+      // Check if ball hit the bottom
+      if (hitBottom) {
+        // Stop the animation
+        if (animationFrameRef.current) {
+          cancelAnimationFrame(animationFrameRef.current);
+          animationFrameRef.current = null;
+        }
+
+        // Call the callback to handle life loss and reset
+        if (onBallHitBottom) {
+          onBallHitBottom();
+        }
+        return;
+      }
 
       // Store current state
       ballPositionRef.current = { x: currentX, y: currentY };
@@ -154,6 +171,7 @@ export const useBallAnimation = ({
     ballDraggable,
     batPositionRef,
     gameStateRef,
+    onBallHitBottom,
   ]);
 
   const calculateLaunchVelocity = useCallback((
