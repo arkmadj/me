@@ -33,7 +33,7 @@ export const useGameControls = ({
           return;
         }
 
-        if (gameStateRef.current === "new") {
+        if (gameStateRef.current === "new" || gameStateRef.current === "restart") {
           launchBall();
         } else if (gameStateRef.current === "running") {
           setGameState("paused");
