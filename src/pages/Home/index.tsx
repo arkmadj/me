@@ -135,10 +135,32 @@ const Home = () => {
     scope.current = createScope({ root: root.current }).add(() => {
       // Ball animation
       if (ball.current) {
+        // Initial scale-in animation
         animate(ball.current, {
-          scale: {
-            from: 40,
-            ease: spring({ bounce: 0.2, duration: 500 }),
+          scale: [
+            {
+              from: 40,
+              to: 0,
+              ease: spring({ bounce: 0.2, duration: 500 }),
+            },
+            {
+              from: 0,
+              to: 1,
+              // ease: spring({ bounce: 0.1, duration: 300 }),
+              ease: "easeInOut",
+              delay: 3000,
+            },
+          ],
+          onComplete: () => {
+            if (!isAnimating.current && ball.current) {
+              animate(ball.current, {
+                scale: [1, 1.2],
+                ease: "easeInOutSine",
+                duration: 1000,
+                alternate: true,
+                loop: true,
+              });
+            }
           },
         });
 
