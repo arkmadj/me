@@ -128,6 +128,13 @@ const Home = () => {
     }
   }, [gameState, batControls, ballAnimation]);
 
+  // Show bat when game starts
+  useEffect(() => {
+    if (gameState === "running") {
+      batControls.showBat();
+    }
+  }, [gameState, batControls]);
+
   // Initial animations setup
   useEffect(() => {
     if (!root.current) return;

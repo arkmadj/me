@@ -155,6 +155,12 @@ export const useBatControls = ({
     }
   }, [batRef, batPositionRef]);
 
+  const showBat = useCallback(() => {
+    if (batRef.current) {
+      batRef.current.style.transform = `translateX(${batPositionRef.current}px) scale(1)`;
+    }
+  }, [batRef, batPositionRef]);
+
   return {
     handleKeyDown,
     handleKeyUp,
@@ -162,6 +168,7 @@ export const useBatControls = ({
     handleTouchMove,
     handleTouchEnd,
     resetBatControls,
+    showBat,
     batAnimationFrame,
   };
 };
