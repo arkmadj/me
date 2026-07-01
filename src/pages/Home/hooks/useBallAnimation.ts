@@ -18,6 +18,7 @@ interface UseBallAnimationProps {
   welcomeAnimationComplete: React.RefObject<boolean>;
   onBallHitBottom?: () => void;
   onCharacterHit?: () => void;
+  onCharacterHitBat?: () => void;
 }
 
 export const useBallAnimation = ({
@@ -32,6 +33,7 @@ export const useBallAnimation = ({
   welcomeAnimationComplete,
   onBallHitBottom,
   onCharacterHit,
+  onCharacterHitBat,
 }: UseBallAnimationProps) => {
   const physics = usePhysicsEngine({
     charRefs,
@@ -40,6 +42,7 @@ export const useBallAnimation = ({
     charPositions,
     batPositionRef,
     onCharacterHit,
+    onCharacterHitBat,
   });
 
   // Destructure physics properties
@@ -48,6 +51,7 @@ export const useBallAnimation = ({
     ballPosition: ballPositionRef,
     ballVelocity: ballVelocityRef,
     checkBatCollision,
+    checkCharacterBatCollisions,
     checkCharacterCollisions,
     updateCharacterPhysics,
     checkBoundaryCollisions,
@@ -120,6 +124,9 @@ export const useBallAnimation = ({
       // Update character physics
       updateCharacterPhysics();
 
+      // Check character-bat collisions
+      checkCharacterBatCollisions();
+
       // Check boundary collisions
       const { newPos, newVel: boundaryVel, hitBottom } = checkBoundaryCollisions(
         { x: currentX, y: currentY },
@@ -167,6 +174,7 @@ export const useBallAnimation = ({
     ballPositionRef,
     ballVelocityRef,
     checkBatCollision,
+    checkCharacterBatCollisions,
     checkCharacterCollisions,
     updateCharacterPhysics,
     checkBoundaryCollisions,

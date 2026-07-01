@@ -61,6 +61,11 @@ const Home = () => {
     incrementScore(10);
   }, [incrementScore]);
 
+  // Handler for when character hits bat
+  const handleCharacterHitBat = useCallback(() => {
+    incrementScore(5);
+  }, [incrementScore]);
+
   // Custom hooks (physics engine doesn't need ballRef, gameStateRef, or ballDraggable)
   const ballAnimation = useBallAnimation({
     ballRef: ball,
@@ -74,6 +79,7 @@ const Home = () => {
     welcomeAnimationComplete,
     onBallHitBottom: handleBallHitBottom,
     onCharacterHit: handleCharacterHit,
+    onCharacterHitBat: handleCharacterHitBat,
   });
 
   const batControls = useBatControls({
