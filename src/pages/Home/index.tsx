@@ -137,14 +137,14 @@ const Home = () => {
 
       // After a restart, automatically transition to 'new' state once reset is complete
       // This allows the ball to be draggable and ready for next launch
-      if (gameState === "restart") {
-        // Use a small delay to ensure all reset animations complete
-        const restartTimer = setTimeout(() => {
-          setGameState("new");
-        }, 100);
+      // if (gameState === "restart") {
+      //   // Use a small delay to ensure all reset animations complete
+      //   const restartTimer = setTimeout(() => {
+      //     setGameState("new");
+      //   }, 100);
 
-        return () => clearTimeout(restartTimer);
-      }
+      //   return () => clearTimeout(restartTimer);
+      // }
     }
   }, [gameState, batControls, ballAnimation, setGameState]);
 
@@ -319,10 +319,13 @@ const Home = () => {
       className='relative z-10 h-full flex flex-col pointer-events-none'
     >
       <div className='flex items-center justify-center pt-4'>
-        <p ref={intro} className='text-green-400 font-mono text-lg mb-2' />
+        <p
+          ref={intro}
+          className={`font-mono text-lg max-md:text-base mb-2 ${gameState === "new" ? "text-green-500" : "text-transparent"}`}
+        />
       </div>
 
-      <div className='grid place-items-center mt-52'>
+      <div className='grid place-items-center mt-52 max-md:mt-20'>
         <AnimatedText
           text={WELCOME_TEXT}
           charRefs={charRefs}
