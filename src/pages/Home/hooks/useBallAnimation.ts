@@ -17,6 +17,7 @@ interface UseBallAnimationProps {
   gameStateRef: React.RefObject<string>;
   welcomeAnimationComplete: React.RefObject<boolean>;
   onBallHitBottom?: () => void;
+  onCharacterHit?: () => void;
 }
 
 export const useBallAnimation = ({
@@ -30,6 +31,7 @@ export const useBallAnimation = ({
   gameStateRef,
   welcomeAnimationComplete,
   onBallHitBottom,
+  onCharacterHit,
 }: UseBallAnimationProps) => {
   const physics = usePhysicsEngine({
     charRefs,
@@ -37,6 +39,7 @@ export const useBallAnimation = ({
     charVelocities,
     charPositions,
     batPositionRef,
+    onCharacterHit,
   });
 
   // Destructure physics properties

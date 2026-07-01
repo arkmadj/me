@@ -47,7 +47,7 @@ const Home = () => {
 
   // Game state
   const batPositionRef = useRef(0);
-  const { gameState, setGameState, decrementLives } = useGame();
+  const { gameState, setGameState, decrementLives, incrementScore } = useGame();
   const gameStateRef = useRef(gameState);
 
   // Handler for when ball hits bottom
@@ -55,6 +55,11 @@ const Home = () => {
     decrementLives();
     setGameState("restart");
   }, [decrementLives, setGameState]);
+
+  // Handler for when character is hit
+  const handleCharacterHit = useCallback(() => {
+    incrementScore(10);
+  }, [incrementScore]);
 
   // Custom hooks (physics engine doesn't need ballRef, gameStateRef, or ballDraggable)
   const ballAnimation = useBallAnimation({
@@ -68,6 +73,7 @@ const Home = () => {
     gameStateRef,
     welcomeAnimationComplete,
     onBallHitBottom: handleBallHitBottom,
+    onCharacterHit: handleCharacterHit,
   });
 
   const batControls = useBatControls({
@@ -134,19 +140,8 @@ const Home = () => {
           }
         });
       }
-
-      // After a restart, automatically transition to 'new' state once reset is complete
-      // This allows the ball to be draggable and ready for next launch
-      // if (gameState === "restart") {
-      //   // Use a small delay to ensure all reset animations complete
-      //   const restartTimer = setTimeout(() => {
-      //     setGameState("new");
-      //   }, 100);
-
-      //   return () => clearTimeout(restartTimer);
-      // }
     }
-  }, [gameState, batControls, ballAnimation, setGameState]);
+  }, [gameState, batControls, ballAnimation]);
 
   // Show bat when game starts
   useEffect(() => {

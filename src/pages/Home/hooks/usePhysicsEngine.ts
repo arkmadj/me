@@ -9,6 +9,7 @@ interface PhysicsEngineProps {
   charVelocities: React.RefObject<{ vx: number; vy: number; vr: number }[]>;
   charPositions: React.RefObject<{ x: number; y: number; rotation: number }[]>;
   batPositionRef: React.RefObject<number>;
+  onCharacterHit?: () => void;
 }
 
 export const usePhysicsEngine = ({
@@ -17,6 +18,7 @@ export const usePhysicsEngine = ({
   charVelocities,
   charPositions,
   batPositionRef,
+  onCharacterHit,
 }: PhysicsEngineProps) => {
   const animationFrame = useRef<number | null>(null);
   const ballPosition = useRef<Position>({ x: 0, y: 0 });
@@ -105,12 +107,17 @@ export const usePhysicsEngine = ({
         charHit.current[i] = true;
         charVelocities.current[i].vy = 2;
 
+        // Increment score
+        if (onCharacterHit) {
+          onCharacterHit();
+        }
+
         // Deflect ball
         const screenCenterX = screenWidth / 2;
         const screenCenterY = screenHeight / 2;
         const charCenterX = charRect.left + charRect.width / 2 - screenCenterX;
         const charCenterY = charRect.top + charRect.height / 2 - screenCenterY;
-        
+
         newVel = calculateDeflection(
           currentPos,
           { x: charCenterX, y: charCenterY },
@@ -120,7 +127,7 @@ export const usePhysicsEngine = ({
     });
 
     return newVel;
-  }, [charRefs, charHit, charVelocities]);
+  }, [charRefs, charHit, charVelocities, onCharacterHit]);
 
   const checkBoundaryCollisions = useCallback((
     pos: Position,
