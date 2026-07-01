@@ -11,21 +11,25 @@ import { clampVelocity, calculateDeflection, checkCollision } from "../utils";
 interface PhysicsEngineProps {
   charRefs: React.RefObject<(HTMLSpanElement | null)[]>;
   charHit: React.RefObject<boolean[]>;
+  charLanded: React.RefObject<boolean[]>;
   charVelocities: React.RefObject<{ vx: number; vy: number; vr: number }[]>;
   charPositions: React.RefObject<{ x: number; y: number; rotation: number }[]>;
   batPositionRef: React.RefObject<number>;
   onCharacterHit?: () => void;
   onCharacterHitBat?: () => void;
+  onCharacterHitBottom?: () => void;
 }
 
 export const usePhysicsEngine = ({
   charRefs,
   charHit,
+  charLanded,
   charVelocities,
   charPositions,
   batPositionRef,
   onCharacterHit,
   onCharacterHitBat,
+  onCharacterHitBottom,
 }: PhysicsEngineProps) => {
   const animationFrame = useRef<number | null>(null);
   const ballPosition = useRef<Position>({ x: 0, y: 0 });
@@ -48,12 +52,20 @@ export const usePhysicsEngine = ({
       if (charPositions.current[i].y >= charMaxY) {
         charPositions.current[i].y = charMaxY;
         charVelocities.current[i].vy = 0;
+
+        // Call callback only once per character
+        if (!charLanded.current[i]) {
+          charLanded.current[i] = true;
+          if (onCharacterHitBottom) {
+            onCharacterHitBottom();
+          }
+        }
       }
 
       // Apply transform
       charEl.style.transform = `translate(${charPositions.current[i].x}px, ${charPositions.current[i].y}px)`;
     });
-  }, [charRefs, charVelocities, charPositions]);
+  }, [charRefs, charLanded, charVelocities, charPositions, onCharacterHitBottom]);
 
   const checkBatCollision = useCallback(
     (
@@ -141,9 +153,12 @@ export const usePhysicsEngine = ({
         charRight >= batBounds.left &&
         charLeft <= batBounds.right
       ) {
-        console.log({ batY, batHeight, screenHeight });
-        if (onCharacterHitBat) {
-          onCharacterHitBat();
+        // Only call callback once per character
+        if (!charLanded.current[i]) {
+          charLanded.current[i] = true;
+          if (onCharacterHitBat) {
+            onCharacterHitBat();
+          }
         }
         // Stop character on top of bat
         charPositions.current[i].y = batY - batHeight / 2 - screenHeight;
@@ -153,7 +168,7 @@ export const usePhysicsEngine = ({
         charEl.style.transform = `translate(${charPositions.current[i].x}px, ${charPositions.current[i].y}px)`;
       }
     });
-  }, [batPositionRef, charRefs, charHit, charVelocities, charPositions, onCharacterHitBat]);
+  }, [batPositionRef, charRefs, charHit, charLanded, charVelocities, charPositions, onCharacterHitBat]);
 
   const checkCharacterCollisions = useCallback(
     (currentPos: Position, currentVel: Velocity): Velocity => {

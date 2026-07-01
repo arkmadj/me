@@ -44,6 +44,7 @@ const Home = () => {
       .map(() => ({ vx: 0, vy: 0, vr: 0 })),
   );
   const charHit = useRef<boolean[]>(Array(WELCOME_TEXT.length).fill(false));
+  const charLanded = useRef<boolean[]>(Array(WELCOME_TEXT.length).fill(false));
 
   // Game state
   const batPositionRef = useRef(0);
@@ -61,10 +62,32 @@ const Home = () => {
     incrementScore(10);
   }, [incrementScore]);
 
+  // Handler for when character hits bat or bottom - checks win condition
+  const handleCharacterLanded = useCallback(() => {
+    // Check if ALL non-space characters have landed (either hit bat or bottom)
+    const allCharactersLanded = charLanded.current.every((landed, i) => {
+      // Skip space characters - they can't be hit by the ball
+      if (WELCOME_TEXT[i] === ' ') return true;
+      return landed;
+    });
+
+    console.log("Win check", { allCharactersLanded, charLanded: charLanded.current });
+    if (allCharactersLanded) {
+      alert("You have won");
+      setGameState("won");
+    }
+  }, [setGameState]);
+
   // Handler for when character hits bat
   const handleCharacterHitBat = useCallback(() => {
     incrementScore(5);
-  }, [incrementScore]);
+    handleCharacterLanded();
+  }, [incrementScore, handleCharacterLanded]);
+
+  // Handler for when character hits bottom
+  const handleCharacterHitBottom = useCallback(() => {
+    handleCharacterLanded();
+  }, [handleCharacterLanded]);
 
   // Custom hooks (physics engine doesn't need ballRef, gameStateRef, or ballDraggable)
   const ballAnimation = useBallAnimation({
@@ -72,6 +95,7 @@ const Home = () => {
     ballDraggable,
     charRefs,
     charHit,
+    charLanded,
     charVelocities,
     charPositions,
     batPositionRef,
@@ -80,6 +104,7 @@ const Home = () => {
     onBallHitBottom: handleBallHitBottom,
     onCharacterHit: handleCharacterHit,
     onCharacterHitBat: handleCharacterHitBat,
+    onCharacterHitBottom: handleCharacterHitBottom,
   });
 
   const batControls = useBatControls({
@@ -132,6 +157,7 @@ const Home = () => {
       if (gameState === "new") {
         // Reset character states
         charHit.current.fill(false);
+        charLanded.current.fill(false);
         charPositions.current = Array(WELCOME_TEXT.length)
           .fill(null)
           .map(() => ({ x: 0, y: 0, rotation: 0 }));

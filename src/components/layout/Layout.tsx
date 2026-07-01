@@ -74,7 +74,7 @@ const LayoutContent = () => {
       </div>
 
       {/* Overlay */}
-      {(gameState === "paused" || gameState === "over" || gameState === "running") && <GameOverlay />}
+      {["paused", "over", "running", "won"].includes(gameState) && <GameOverlay />}
       {/* Main content area - rendered by React Router */}
       <Outlet />
       {/* Navigation */}

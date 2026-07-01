@@ -11,6 +11,7 @@ interface UseBallAnimationProps {
   ballDraggable: React.RefObject<ReturnType<typeof createDraggable> | null>;
   charRefs: React.RefObject<(HTMLSpanElement | null)[]>;
   charHit: React.RefObject<boolean[]>;
+  charLanded: React.RefObject<boolean[]>;
   charVelocities: React.RefObject<{ vx: number; vy: number; vr: number }[]>;
   charPositions: React.RefObject<{ x: number; y: number; rotation: number }[]>;
   batPositionRef: React.RefObject<number>;
@@ -19,6 +20,7 @@ interface UseBallAnimationProps {
   onBallHitBottom?: () => void;
   onCharacterHit?: () => void;
   onCharacterHitBat?: () => void;
+  onCharacterHitBottom?: () => void;
 }
 
 export const useBallAnimation = ({
@@ -26,6 +28,7 @@ export const useBallAnimation = ({
   ballDraggable,
   charRefs,
   charHit,
+  charLanded,
   charVelocities,
   charPositions,
   batPositionRef,
@@ -34,15 +37,18 @@ export const useBallAnimation = ({
   onBallHitBottom,
   onCharacterHit,
   onCharacterHitBat,
+  onCharacterHitBottom,
 }: UseBallAnimationProps) => {
   const physics = usePhysicsEngine({
     charRefs,
     charHit,
+    charLanded,
     charVelocities,
     charPositions,
     batPositionRef,
     onCharacterHit,
     onCharacterHitBat,
+    onCharacterHitBottom,
   });
 
   // Destructure physics properties

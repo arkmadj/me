@@ -17,6 +17,20 @@ const GameOverlay = () => {
     setGameState("paused");
   };
 
+  if (gameState === "won") {
+    return (
+      <main className='h-full w-full bg-black/50 backdrop-blur-xs absolute flex flex-col items-center justify-center gap-6 z-50'>
+        <h1 className='text-5xl text-green-400 font-mono font-bold drop-shadow-[0_0_10px_rgba(34,197,94,0.8)]'>
+          You Won!
+        </h1>
+        <div className='text-2xl text-green-400 font-mono'>Score: {score}</div>
+        <div className='flex gap-6 max-md:flex-col max-md:gap-3'>
+          <Button onClick={handleTryAgain}>Play Again</Button>
+        </div>
+      </main>
+    );
+  }
+
   if (gameState === "over") {
     return (
       <main className='h-full w-full bg-black/50 backdrop-blur-xs absolute flex flex-col items-center justify-center gap-6 z-50'>
