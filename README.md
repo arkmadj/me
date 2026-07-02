@@ -1,73 +1,84 @@
-# React + TypeScript + Vite
+# Personal Portfolio
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+A Matrix-themed interactive portfolio website featuring a breakout-style game built with React, TypeScript, and Anime.js.
 
-Currently, two official plugins are available:
+## Features
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+- 🎮 **Interactive Game**: Breakout/Pong-style game with physics engine and collision detection
+- 🎨 **Matrix Theme**: Retro green-on-black aesthetic with animated grid background
+- ⚡ **Smooth Animations**: Powered by Anime.js for fluid character and element animations
+- 📱 **Responsive Design**: Adapts to different screen sizes with Tailwind CSS
+- 🚀 **Fast Performance**: Built with Vite for lightning-fast development and builds
+- ☁️ **Cloudflare Ready**: Configured for deployment to Cloudflare Pages
 
-## React Compiler
+## Tech Stack
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+- **Framework**: React 19 with TypeScript
+- **Build Tool**: Vite 8
+- **Styling**: Tailwind CSS 4
+- **Animations**: Anime.js 4
+- **Routing**: React Router 7
+- **Deployment**: Cloudflare Pages (via Wrangler)
+- **Icons**: Radix UI Icons
 
-## Expanding the ESLint configuration
+## Getting Started
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+### Prerequisites
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+- Node.js (v18 or higher recommended)
+- npm or yarn
 
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
+### Installation
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+```bash
+# Install dependencies
+npm install
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+### Development
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
-
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+```bash
+# Start development server
+npm run dev
 ```
+
+Visit `http://localhost:5173` to view the application.
+
+### Building
+
+```bash
+# Build for production
+npm run build
+```
+
+### Preview & Deploy
+
+```bash
+# Preview production build locally
+npm run preview
+
+# Deploy to Cloudflare Pages
+npm run deploy
+```
+
+## Project Structure
+
+```
+src/
+├── components/     # Reusable UI components
+├── context/        # React context (game state management)
+├── pages/          # Route pages (Home, About, Projects)
+├── routes/         # Router configuration
+├── lib/            # Utility functions
+└── assets/         # Static assets
+```
+
+## Game Controls
+
+- **Keyboard**: Use arrow keys or A/D to move the bat
+- **Mouse**: Click to start, drag the ball to launch
+- **Objective**: Break all characters in the welcome text
+
+## License
+
+MIT
