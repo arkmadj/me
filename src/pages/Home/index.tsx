@@ -73,7 +73,6 @@ const Home = () => {
 
     console.log("Win check", { allCharactersLanded, charLanded: charLanded.current });
     if (allCharactersLanded) {
-      alert("You have won");
       setGameState("won");
     }
   }, [setGameState]);
