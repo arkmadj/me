@@ -71,7 +71,6 @@ const Home = () => {
       return landed;
     });
 
-    console.log("Win check", { allCharactersLanded, charLanded: charLanded.current });
     if (allCharactersLanded) {
       setGameState("won");
     }
