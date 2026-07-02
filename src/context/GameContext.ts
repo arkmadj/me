@@ -1,6 +1,6 @@
 import { createContext, useContext } from "react";
 
-export type GameState = 'paused' | 'running' | 'over' | 'new' | 'restart'; 
+export type GameState = 'paused' | 'running' | 'over' | 'new' | 'restart' | 'won'; 
 
 export interface GameContextType {
   gameState: GameState;

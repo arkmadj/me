@@ -17,6 +17,20 @@ const GameOverlay = () => {
     setGameState("paused");
   };
 
+  if (gameState === "won") {
+    return (
+      <main className='h-full w-full bg-black/50 backdrop-blur-xs absolute flex flex-col items-center justify-center gap-6 z-50'>
+        <h1 className='text-5xl text-green-400 font-mono font-bold drop-shadow-[0_0_10px_rgba(34,197,94,0.8)]'>
+          You Won!
+        </h1>
+        <div className='text-2xl text-green-400 font-mono'>Score: {score}</div>
+        <div className='flex gap-6 max-md:flex-col max-md:gap-3'>
+          <Button onClick={handleTryAgain}>Play Again</Button>
+        </div>
+      </main>
+    );
+  }
+
   if (gameState === "over") {
     return (
       <main className='h-full w-full bg-black/50 backdrop-blur-xs absolute flex flex-col items-center justify-center gap-6 z-50'>
@@ -58,17 +72,17 @@ const GameOverlay = () => {
           <div className='flex-1 flex flex-col items-start gap-1'>
             <div className='flex justify-center items-center'>
               {Array.from({ length: lives }).map((_, i) => (
-                <HeartFilledIcon key={i} className='size-10' color='#05df72' />
+                <HeartFilledIcon key={i} className='size-10 max-md:size-5' color='#05df72' />
               ))}
               {Array.from({ length: 3 - lives }).map((_, i) => (
-                <HeartIcon key={i} className='size-10' color='#05df72' />
+                <HeartIcon key={i} className='size-10 max-md:size-5' color='#05df72' />
               ))}
             </div>
-            <p className='text-2xl text-green-400 font-mono'>Score: {score}</p>
+            <p className='text-2xl text-green-400 font-mono max-md:text-lg'>Score: {score}</p>
           </div>
           <div>
             <Button className='rounded-full p-1 border-2' onClick={handlePause}>
-              <PauseIcon className='size-9' />
+              <PauseIcon className='size-9 max-md:size-6' />
             </Button>
           </div>
         </div>

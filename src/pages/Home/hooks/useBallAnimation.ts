@@ -11,12 +11,16 @@ interface UseBallAnimationProps {
   ballDraggable: React.RefObject<ReturnType<typeof createDraggable> | null>;
   charRefs: React.RefObject<(HTMLSpanElement | null)[]>;
   charHit: React.RefObject<boolean[]>;
+  charLanded: React.RefObject<boolean[]>;
   charVelocities: React.RefObject<{ vx: number; vy: number; vr: number }[]>;
   charPositions: React.RefObject<{ x: number; y: number; rotation: number }[]>;
   batPositionRef: React.RefObject<number>;
   gameStateRef: React.RefObject<string>;
   welcomeAnimationComplete: React.RefObject<boolean>;
   onBallHitBottom?: () => void;
+  onCharacterHit?: () => void;
+  onCharacterHitBat?: () => void;
+  onCharacterHitBottom?: () => void;
 }
 
 export const useBallAnimation = ({
@@ -24,19 +28,27 @@ export const useBallAnimation = ({
   ballDraggable,
   charRefs,
   charHit,
+  charLanded,
   charVelocities,
   charPositions,
   batPositionRef,
   gameStateRef,
   welcomeAnimationComplete,
   onBallHitBottom,
+  onCharacterHit,
+  onCharacterHitBat,
+  onCharacterHitBottom,
 }: UseBallAnimationProps) => {
   const physics = usePhysicsEngine({
     charRefs,
     charHit,
+    charLanded,
     charVelocities,
     charPositions,
     batPositionRef,
+    onCharacterHit,
+    onCharacterHitBat,
+    onCharacterHitBottom,
   });
 
   // Destructure physics properties
@@ -45,6 +57,7 @@ export const useBallAnimation = ({
     ballPosition: ballPositionRef,
     ballVelocity: ballVelocityRef,
     checkBatCollision,
+    checkCharacterBatCollisions,
     checkCharacterCollisions,
     updateCharacterPhysics,
     checkBoundaryCollisions,
@@ -64,10 +77,21 @@ export const useBallAnimation = ({
     const batY = getBatY(screenHeight, batHeight);
 
     const animateBounce = () => {
-      // Check if game is paused
-      if (gameStateRef.current === "paused") {
+      // Check if game is paused, won, or over
+      if (gameStateRef.current === "paused" || gameStateRef.current === "won" || gameStateRef.current === "over") {
         ballPositionRef.current = { x: currentX, y: currentY };
         ballVelocityRef.current = { vx: velocityX, vy: velocityY };
+
+        // Stop animation if game is won or over
+        if (gameStateRef.current === "won" || gameStateRef.current === "over") {
+          if (animationFrameRef.current) {
+            cancelAnimationFrame(animationFrameRef.current);
+            animationFrameRef.current = null;
+          }
+          return;
+        }
+
+        // Continue animation loop if only paused (so it can resume)
         animationFrameRef.current = requestAnimationFrame(animateBounce);
         return;
       }
@@ -117,6 +141,9 @@ export const useBallAnimation = ({
       // Update character physics
       updateCharacterPhysics();
 
+      // Check character-bat collisions
+      checkCharacterBatCollisions();
+
       // Check boundary collisions
       const { newPos, newVel: boundaryVel, hitBottom } = checkBoundaryCollisions(
         { x: currentX, y: currentY },
@@ -164,6 +191,7 @@ export const useBallAnimation = ({
     ballPositionRef,
     ballVelocityRef,
     checkBatCollision,
+    checkCharacterBatCollisions,
     checkCharacterCollisions,
     updateCharacterPhysics,
     checkBoundaryCollisions,

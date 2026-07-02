@@ -44,10 +44,11 @@ const Home = () => {
       .map(() => ({ vx: 0, vy: 0, vr: 0 })),
   );
   const charHit = useRef<boolean[]>(Array(WELCOME_TEXT.length).fill(false));
+  const charLanded = useRef<boolean[]>(Array(WELCOME_TEXT.length).fill(false));
 
   // Game state
   const batPositionRef = useRef(0);
-  const { gameState, setGameState, decrementLives } = useGame();
+  const { gameState, setGameState, decrementLives, incrementScore } = useGame();
   const gameStateRef = useRef(gameState);
 
   // Handler for when ball hits bottom
@@ -56,18 +57,52 @@ const Home = () => {
     setGameState("restart");
   }, [decrementLives, setGameState]);
 
+  // Handler for when character is hit
+  const handleCharacterHit = useCallback(() => {
+    incrementScore(10);
+  }, [incrementScore]);
+
+  // Handler for when character hits bat or bottom - checks win condition
+  const handleCharacterLanded = useCallback(() => {
+    // Check if ALL non-space characters have landed (either hit bat or bottom)
+    const allCharactersLanded = charLanded.current.every((landed, i) => {
+      // Skip space characters - they can't be hit by the ball
+      if (WELCOME_TEXT[i] === ' ') return true;
+      return landed;
+    });
+
+    if (allCharactersLanded) {
+      setGameState("won");
+    }
+  }, [setGameState]);
+
+  // Handler for when character hits bat
+  const handleCharacterHitBat = useCallback(() => {
+    incrementScore(5);
+    handleCharacterLanded();
+  }, [incrementScore, handleCharacterLanded]);
+
+  // Handler for when character hits bottom
+  const handleCharacterHitBottom = useCallback(() => {
+    handleCharacterLanded();
+  }, [handleCharacterLanded]);
+
   // Custom hooks (physics engine doesn't need ballRef, gameStateRef, or ballDraggable)
   const ballAnimation = useBallAnimation({
     ballRef: ball,
     ballDraggable,
     charRefs,
     charHit,
+    charLanded,
     charVelocities,
     charPositions,
     batPositionRef,
     gameStateRef,
     welcomeAnimationComplete,
     onBallHitBottom: handleBallHitBottom,
+    onCharacterHit: handleCharacterHit,
+    onCharacterHitBat: handleCharacterHitBat,
+    onCharacterHitBottom: handleCharacterHitBottom,
   });
 
   const batControls = useBatControls({
@@ -120,6 +155,7 @@ const Home = () => {
       if (gameState === "new") {
         // Reset character states
         charHit.current.fill(false);
+        charLanded.current.fill(false);
         charPositions.current = Array(WELCOME_TEXT.length)
           .fill(null)
           .map(() => ({ x: 0, y: 0, rotation: 0 }));
@@ -134,19 +170,8 @@ const Home = () => {
           }
         });
       }
-
-      // After a restart, automatically transition to 'new' state once reset is complete
-      // This allows the ball to be draggable and ready for next launch
-      if (gameState === "restart") {
-        // Use a small delay to ensure all reset animations complete
-        const restartTimer = setTimeout(() => {
-          setGameState("new");
-        }, 100);
-
-        return () => clearTimeout(restartTimer);
-      }
     }
-  }, [gameState, batControls, ballAnimation, setGameState]);
+  }, [gameState, batControls, ballAnimation]);
 
   // Show bat when game starts
   useEffect(() => {
@@ -215,6 +240,7 @@ const Home = () => {
               ballDraggable.current.disable();
             }
 
+            // if the ball is tapped
             if (isDeepEqual(velocity, { vx: 0, vy: 0 })) {
               ballAnimation.animateBall(dragEnd.current, {
                 vx: 0,
@@ -319,10 +345,13 @@ const Home = () => {
       className='relative z-10 h-full flex flex-col pointer-events-none'
     >
       <div className='flex items-center justify-center pt-4'>
-        <p ref={intro} className='text-green-400 font-mono text-lg mb-2' />
+        <p
+          ref={intro}
+          className={`font-mono text-lg max-md:text-base mb-2 ${gameState === "new" ? "text-green-500" : "text-transparent"}`}
+        />
       </div>
 
-      <div className='grid place-items-center mt-52'>
+      <div className='grid place-items-center mt-52 max-md:mt-20'>
         <AnimatedText
           text={WELCOME_TEXT}
           charRefs={charRefs}
