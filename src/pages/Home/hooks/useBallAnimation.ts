@@ -77,10 +77,21 @@ export const useBallAnimation = ({
     const batY = getBatY(screenHeight, batHeight);
 
     const animateBounce = () => {
-      // Check if game is paused
-      if (gameStateRef.current === "paused") {
+      // Check if game is paused, won, or over
+      if (gameStateRef.current === "paused" || gameStateRef.current === "won" || gameStateRef.current === "over") {
         ballPositionRef.current = { x: currentX, y: currentY };
         ballVelocityRef.current = { vx: velocityX, vy: velocityY };
+
+        // Stop animation if game is won or over
+        if (gameStateRef.current === "won" || gameStateRef.current === "over") {
+          if (animationFrameRef.current) {
+            cancelAnimationFrame(animationFrameRef.current);
+            animationFrameRef.current = null;
+          }
+          return;
+        }
+
+        // Continue animation loop if only paused (so it can resume)
         animationFrameRef.current = requestAnimationFrame(animateBounce);
         return;
       }
