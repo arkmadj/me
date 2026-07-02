@@ -240,6 +240,7 @@ const Home = () => {
               ballDraggable.current.disable();
             }
 
+            // if the ball is tapped
             if (isDeepEqual(velocity, { vx: 0, vy: 0 })) {
               ballAnimation.animateBall(dragEnd.current, {
                 vx: 0,

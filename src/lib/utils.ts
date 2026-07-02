@@ -22,6 +22,6 @@ export function isDeepEqual(obj1: Velocity, obj2: Velocity) {
   // Must have the same number of properties
   if (keys1.length !== keys2.length) return false;
 
-
-  return true;
+  // Compare the values of vx and vy
+  return obj1.vx === obj2.vx && obj1.vy === obj2.vy;
 }
