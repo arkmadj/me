@@ -53,13 +53,14 @@ const Home = () => {
   const gameStateRef = useRef(gameState);
 
   // Sound effects
-  const { playCharacterHit } = useSound();
+  const { playCharacterHit, playBallMiss, playCharacterLand } = useSound();
 
   // Handler for when ball hits bottom
   const handleBallHitBottom = useCallback(() => {
+    playBallMiss();
     decrementLives();
     setGameState("restart");
-  }, [decrementLives, setGameState]);
+  }, [decrementLives, setGameState, playBallMiss]);
 
   // Handler for when character is hit
   const handleCharacterHit = useCallback(() => {
@@ -83,9 +84,10 @@ const Home = () => {
 
   // Handler for when character hits bat
   const handleCharacterHitBat = useCallback(() => {
+    playCharacterLand();
     incrementScore(5);
     handleCharacterLanded();
-  }, [incrementScore, handleCharacterLanded]);
+  }, [incrementScore, handleCharacterLanded, playCharacterLand]);
 
   // Handler for when character hits bottom
   const handleCharacterHitBottom = useCallback(() => {
