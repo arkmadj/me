@@ -53,7 +53,7 @@ const Home = () => {
   const gameStateRef = useRef(gameState);
 
   // Sound effects
-  const { playCharacterHit, playBallMiss, playCharacterLand, playGameOver } = useSound();
+  const { playCharacterHit, playBallMiss, playCharacterLand, playGameOver, playVictory } = useSound();
 
   // Handler for when ball hits bottom
   const handleBallHitBottom = useCallback(() => {
@@ -193,6 +193,13 @@ const Home = () => {
       playGameOver();
     }
   }, [gameState, playGameOver]);
+
+  // Play victory sound when game is won
+  useEffect(() => {
+    if (gameState === "won") {
+      playVictory();
+    }
+  }, [gameState, playVictory]);
 
   // Initial animations setup
   useEffect(() => {
