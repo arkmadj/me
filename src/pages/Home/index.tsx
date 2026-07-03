@@ -53,7 +53,7 @@ const Home = () => {
   const gameStateRef = useRef(gameState);
 
   // Sound effects
-  const { playCharacterHit, playBallMiss, playCharacterLand } = useSound();
+  const { playCharacterHit, playBallMiss, playCharacterLand, playGameOver } = useSound();
 
   // Handler for when ball hits bottom
   const handleBallHitBottom = useCallback(() => {
@@ -186,6 +186,13 @@ const Home = () => {
       batControls.showBat();
     }
   }, [gameState, batControls]);
+
+  // Play game over sound when game ends
+  useEffect(() => {
+    if (gameState === "over") {
+      playGameOver();
+    }
+  }, [gameState, playGameOver]);
 
   // Initial animations setup
   useEffect(() => {

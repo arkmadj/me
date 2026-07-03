@@ -130,10 +130,60 @@ export const useSound = () => {
     oscillator.stop(currentTime + 0.12);
   }, [getAudioContext]);
 
+  /**
+   * Play a game over sound effect
+   */
+  const playGameOver = useCallback(() => {
+    const audioContext = getAudioContext();
+    const currentTime = audioContext.currentTime;
+
+    // Create three oscillators for a dramatic descending chord
+    const osc1 = audioContext.createOscillator();
+    const osc2 = audioContext.createOscillator();
+    const osc3 = audioContext.createOscillator();
+    const gainNode = audioContext.createGain();
+
+    osc1.connect(gainNode);
+    osc2.connect(gainNode);
+    osc3.connect(gainNode);
+    gainNode.connect(audioContext.destination);
+
+    // Configure the sounds - dramatic descending minor chord
+    osc1.type = 'sine';
+    osc2.type = 'sine';
+    osc3.type = 'sine';
+
+    // Three note descending progression (minor chord feel)
+    osc1.frequency.setValueAtTime(440, currentTime); // A
+    osc1.frequency.exponentialRampToValueAtTime(220, currentTime + 0.5);
+
+    osc2.frequency.setValueAtTime(349.23, currentTime + 0.1); // F
+    osc2.frequency.exponentialRampToValueAtTime(174.61, currentTime + 0.6);
+
+    osc3.frequency.setValueAtTime(261.63, currentTime + 0.2); // C
+    osc3.frequency.exponentialRampToValueAtTime(130.81, currentTime + 0.7);
+
+    // Volume envelope - dramatic with sustain
+    gainNode.gain.setValueAtTime(0, currentTime);
+    gainNode.gain.linearRampToValueAtTime(0.3, currentTime + 0.05);
+    gainNode.gain.linearRampToValueAtTime(0.25, currentTime + 0.4);
+    gainNode.gain.exponentialRampToValueAtTime(0.01, currentTime + 0.8);
+
+    // Play the sounds
+    osc1.start(currentTime);
+    osc2.start(currentTime + 0.1);
+    osc3.start(currentTime + 0.2);
+
+    osc1.stop(currentTime + 0.8);
+    osc2.stop(currentTime + 0.8);
+    osc3.stop(currentTime + 0.8);
+  }, [getAudioContext]);
+
   return {
     playBatHit,
     playCharacterHit,
     playBallMiss,
     playCharacterLand,
+    playGameOver,
   };
 };
