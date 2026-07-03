@@ -15,6 +15,7 @@ import { AnimatedText } from "./components/AnimatedText";
 import { Ball } from "./components/Ball";
 import { Bat } from "./components/Bat";
 import { isDeepEqual } from "@/lib/utils";
+import { useSound } from "@/hooks/useSound";
 
 const Home = () => {
   // Refs for DOM elements
@@ -51,16 +52,21 @@ const Home = () => {
   const { gameState, setGameState, decrementLives, incrementScore } = useGame();
   const gameStateRef = useRef(gameState);
 
+  // Sound effects
+  const { playCharacterHit, playBallMiss, playCharacterLand, playGameOver, playVictory } = useSound();
+
   // Handler for when ball hits bottom
   const handleBallHitBottom = useCallback(() => {
+    playBallMiss();
     decrementLives();
     setGameState("restart");
-  }, [decrementLives, setGameState]);
+  }, [decrementLives, setGameState, playBallMiss]);
 
   // Handler for when character is hit
   const handleCharacterHit = useCallback(() => {
     incrementScore(10);
-  }, [incrementScore]);
+    playCharacterHit();
+  }, [incrementScore, playCharacterHit]);
 
   // Handler for when character hits bat or bottom - checks win condition
   const handleCharacterLanded = useCallback(() => {
@@ -78,9 +84,10 @@ const Home = () => {
 
   // Handler for when character hits bat
   const handleCharacterHitBat = useCallback(() => {
+    playCharacterLand();
     incrementScore(5);
     handleCharacterLanded();
-  }, [incrementScore, handleCharacterLanded]);
+  }, [incrementScore, handleCharacterLanded, playCharacterLand]);
 
   // Handler for when character hits bottom
   const handleCharacterHitBottom = useCallback(() => {
@@ -179,6 +186,20 @@ const Home = () => {
       batControls.showBat();
     }
   }, [gameState, batControls]);
+
+  // Play game over sound when game ends
+  useEffect(() => {
+    if (gameState === "over") {
+      playGameOver();
+    }
+  }, [gameState, playGameOver]);
+
+  // Play victory sound when game is won
+  useEffect(() => {
+    if (gameState === "won") {
+      playVictory();
+    }
+  }, [gameState, playVictory]);
 
   // Initial animations setup
   useEffect(() => {

@@ -5,6 +5,7 @@ import type { Velocity, Position } from "../types";
 import { getResponsiveValues, getBatY, PHYSICS } from "../constants";
 import { clampVelocity } from "../utils";
 import { usePhysicsEngine } from "./usePhysicsEngine";
+import { useSound } from "@/hooks/useSound";
 
 interface UseBallAnimationProps {
   ballRef: React.RefObject<HTMLDivElement | null>;
@@ -39,6 +40,8 @@ export const useBallAnimation = ({
   onCharacterHitBat,
   onCharacterHitBottom,
 }: UseBallAnimationProps) => {
+  const { playBatHit } = useSound();
+
   const physics = usePhysicsEngine({
     charRefs,
     charHit,
@@ -128,6 +131,9 @@ export const useBallAnimation = ({
         currentY = batCollision.newY;
         velocityX = batCollision.newVelocity.vx;
         velocityY = batCollision.newVelocity.vy;
+
+        // Play bat hit sound
+        playBatHit();
       }
 
       // Check character collisions

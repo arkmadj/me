@@ -49,7 +49,7 @@ const LayoutContent = () => {
       {/* Cursor tracking glow effect */}
       <div
         ref={cursorTracker}
-        className='absolute pointer-events-none z-0 w-0 h-0'
+        className='absolute left-1/2 top-1/2 pointer-events-none z-0 w-0 h-0'
       >
         <div className='absolute -translate-x-1/2 -translate-y-1/2 bg-green-500 size-96 rounded-full blur-3xl opacity-60' />
         <div className='absolute -translate-x-1/2 -translate-y-1/2 bg-green-400 size-64 rounded-full blur-2xl opacity-50' />
