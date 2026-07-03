@@ -15,6 +15,7 @@ import { AnimatedText } from "./components/AnimatedText";
 import { Ball } from "./components/Ball";
 import { Bat } from "./components/Bat";
 import { isDeepEqual } from "@/lib/utils";
+import { useSound } from "@/hooks/useSound";
 
 const Home = () => {
   // Refs for DOM elements
@@ -51,6 +52,9 @@ const Home = () => {
   const { gameState, setGameState, decrementLives, incrementScore } = useGame();
   const gameStateRef = useRef(gameState);
 
+  // Sound effects
+  const { playCharacterHit } = useSound();
+
   // Handler for when ball hits bottom
   const handleBallHitBottom = useCallback(() => {
     decrementLives();
@@ -60,7 +64,8 @@ const Home = () => {
   // Handler for when character is hit
   const handleCharacterHit = useCallback(() => {
     incrementScore(10);
-  }, [incrementScore]);
+    playCharacterHit();
+  }, [incrementScore, playCharacterHit]);
 
   // Handler for when character hits bat or bottom - checks win condition
   const handleCharacterLanded = useCallback(() => {
