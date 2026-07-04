@@ -49,11 +49,11 @@ const Home = () => {
 
   // Game state
   const batPositionRef = useRef(0);
-  const { gameState, setGameState, decrementLives, incrementScore } = useGame();
+  const { gameState, setGameState, decrementLives, incrementScore, mutedSound } = useGame();
   const gameStateRef = useRef(gameState);
 
   // Sound effects
-  const { playCharacterHit, playBallMiss, playCharacterLand, playGameOver, playVictory } = useSound();
+  const { playCharacterHit, playBallMiss, playCharacterLand, playGameOver, playVictory } = useSound({ muted: mutedSound });
 
   // Handler for when ball hits bottom
   const handleBallHitBottom = useCallback(() => {
@@ -106,6 +106,7 @@ const Home = () => {
     batPositionRef,
     gameStateRef,
     welcomeAnimationComplete,
+    muted: mutedSound,
     onBallHitBottom: handleBallHitBottom,
     onCharacterHit: handleCharacterHit,
     onCharacterHitBat: handleCharacterHitBat,
