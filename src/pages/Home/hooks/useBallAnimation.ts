@@ -18,6 +18,7 @@ interface UseBallAnimationProps {
   batPositionRef: React.RefObject<number>;
   gameStateRef: React.RefObject<string>;
   welcomeAnimationComplete: React.RefObject<boolean>;
+  muted?: boolean;
   onBallHitBottom?: () => void;
   onCharacterHit?: () => void;
   onCharacterHitBat?: () => void;
@@ -35,12 +36,13 @@ export const useBallAnimation = ({
   batPositionRef,
   gameStateRef,
   welcomeAnimationComplete,
+  muted,
   onBallHitBottom,
   onCharacterHit,
   onCharacterHitBat,
   onCharacterHitBottom,
 }: UseBallAnimationProps) => {
-  const { playBatHit } = useSound();
+  const { playBatHit } = useSound({ muted });
 
   const physics = usePhysicsEngine({
     charRefs,
@@ -206,6 +208,7 @@ export const useBallAnimation = ({
     batPositionRef,
     gameStateRef,
     onBallHitBottom,
+    playBatHit,
   ]);
 
   const calculateLaunchVelocity = useCallback((
