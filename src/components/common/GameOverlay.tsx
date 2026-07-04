@@ -1,9 +1,23 @@
 import Button from "@/components/ui/Button";
 import { useGame } from "@/context";
-import { HeartFilledIcon, HeartIcon, PauseIcon } from "@radix-ui/react-icons";
+import {
+  HeartFilledIcon,
+  HeartIcon,
+  PauseIcon,
+  SpeakerLoudIcon,
+  SpeakerOffIcon,
+} from "@radix-ui/react-icons";
 
 const GameOverlay = () => {
-  const { gameState, score, lives, setGameState, resetGame } = useGame();
+  const {
+    gameState,
+    score,
+    lives,
+    mutedSound,
+    setGameState,
+    resetGame,
+    toggleSound,
+  } = useGame();
 
   const handleStartGame = () => {
     setGameState("running");
@@ -15,6 +29,10 @@ const GameOverlay = () => {
 
   const handlePause = () => {
     setGameState("paused");
+  };
+
+  const handleToggleSound = () => {
+    toggleSound();
   };
 
   if (gameState === "won") {
@@ -72,15 +90,35 @@ const GameOverlay = () => {
           <div className='flex-1 flex flex-col items-start gap-1'>
             <div className='flex justify-center items-center'>
               {Array.from({ length: lives }).map((_, i) => (
-                <HeartFilledIcon key={i} className='size-10 max-md:size-5' color='#05df72' />
+                <HeartFilledIcon
+                  key={i}
+                  className='size-10 max-md:size-5'
+                  color='#05df72'
+                />
               ))}
               {Array.from({ length: 3 - lives }).map((_, i) => (
-                <HeartIcon key={i} className='size-10 max-md:size-5' color='#05df72' />
+                <HeartIcon
+                  key={i}
+                  className='size-10 max-md:size-5'
+                  color='#05df72'
+                />
               ))}
             </div>
-            <p className='text-2xl text-green-400 font-mono max-md:text-lg'>Score: {score}</p>
+            <p className='text-2xl text-green-400 font-mono max-md:text-lg'>
+              Score: {score}
+            </p>
           </div>
-          <div>
+          <div className='flex gap-3'>
+            <Button
+              className='rounded-full p-1 border-2'
+              onClick={handleToggleSound}
+            >
+              {mutedSound ? (
+                <SpeakerOffIcon className='size-9 max-md:size-6' />
+              ) : (
+                <SpeakerLoudIcon className='size-9 max-md:size-6' />
+              )}
+            </Button>
             <Button className='rounded-full p-1 border-2' onClick={handlePause}>
               <PauseIcon className='size-9 max-md:size-6' />
             </Button>
