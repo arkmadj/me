@@ -1,18 +1,28 @@
 import { createContext, useContext } from "react";
 
-export type GameState = 'paused' | 'running' | 'over' | 'new' | 'restart' | 'won'; 
+export type GameState =
+  | "paused"
+  | "running"
+  | "over"
+  | "new"
+  | "restart"
+  | "won";
 
 export interface GameContextType {
   gameState: GameState;
   score: number;
   lives: number;
+  mutedSound: boolean;
   setGameState: (state: GameState) => void;
   incrementScore: (points: number) => void;
   decrementLives: () => void;
   resetGame: () => void;
+  toggleSound: () => void;
 }
 
-export const GameContext = createContext<GameContextType | undefined>(undefined);
+export const GameContext = createContext<GameContextType | undefined>(
+  undefined,
+);
 
 export const useGame = () => {
   const context = useContext(GameContext);
