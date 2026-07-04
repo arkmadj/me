@@ -1,23 +1,63 @@
-import { useCallback, useRef } from 'react';
+import { useCallback, useRef, useEffect } from 'react';
+
+interface UseSoundProps {
+  muted?: boolean;
+}
 
 /**
  * Hook for playing simple game sounds using Web Audio API
  */
-export const useSound = () => {
+export const useSound = ({ muted = false }: UseSoundProps = {}) => {
   const audioContextRef = useRef<AudioContext | null>(null);
+  const mutedRef = useRef(muted);
+
+  // Update muted ref whenever muted prop changes
+  useEffect(() => {
+    mutedRef.current = muted;
+  }, [muted]);
 
   // Initialize audio context on first use
   const getAudioContext = useCallback(() => {
     if (!audioContextRef.current) {
-      audioContextRef.current = new (window.AudioContext || (window as any).webkitAudioContext)();
+      const AudioContextClass = window.AudioContext || (window as typeof window & { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
+      audioContextRef.current = new AudioContextClass();
     }
+
+    // Resume audio context if it's suspended (Safari requirement)
+    if (audioContextRef.current.state === 'suspended') {
+      audioContextRef.current.resume();
+    }
+
     return audioContextRef.current;
   }, []);
+
+  // Initialize AudioContext on user interaction (required for Safari)
+  useEffect(() => {
+    const initAudioContext = () => {
+      getAudioContext();
+      // Remove listeners after first interaction
+      document.removeEventListener('click', initAudioContext);
+      document.removeEventListener('touchstart', initAudioContext);
+      document.removeEventListener('keydown', initAudioContext);
+    };
+
+    document.addEventListener('click', initAudioContext);
+    document.addEventListener('touchstart', initAudioContext);
+    document.addEventListener('keydown', initAudioContext);
+
+    return () => {
+      document.removeEventListener('click', initAudioContext);
+      document.removeEventListener('touchstart', initAudioContext);
+      document.removeEventListener('keydown', initAudioContext);
+    };
+  }, [getAudioContext]);
 
   /**
    * Play a bat hit sound effect
    */
   const playBatHit = useCallback(() => {
+    if (mutedRef.current) return;
+
     const audioContext = getAudioContext();
     const currentTime = audioContext.currentTime;
 
@@ -47,6 +87,8 @@ export const useSound = () => {
    * Play a character hit sound effect
    */
   const playCharacterHit = useCallback(() => {
+    if (mutedRef.current) return;
+
     const audioContext = getAudioContext();
     const currentTime = audioContext.currentTime;
 
@@ -76,6 +118,8 @@ export const useSound = () => {
    * Play a ball miss sound effect (when ball hits bottom)
    */
   const playBallMiss = useCallback(() => {
+    if (mutedRef.current) return;
+
     const audioContext = getAudioContext();
     const currentTime = audioContext.currentTime;
 
@@ -105,6 +149,8 @@ export const useSound = () => {
    * Play a character land on bat sound effect
    */
   const playCharacterLand = useCallback(() => {
+    if (mutedRef.current) return;
+
     const audioContext = getAudioContext();
     const currentTime = audioContext.currentTime;
 
@@ -134,6 +180,8 @@ export const useSound = () => {
    * Play a game over sound effect
    */
   const playGameOver = useCallback(() => {
+    if (mutedRef.current) return;
+
     const audioContext = getAudioContext();
     const currentTime = audioContext.currentTime;
 
@@ -183,6 +231,8 @@ export const useSound = () => {
    * Play a victory sound effect (when game is won)
    */
   const playVictory = useCallback(() => {
+    if (mutedRef.current) return;
+
     const audioContext = getAudioContext();
     const currentTime = audioContext.currentTime;
 
