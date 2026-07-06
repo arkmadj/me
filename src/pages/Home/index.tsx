@@ -31,6 +31,7 @@ const Home = () => {
   const dragEnd = useRef({ x: 0, y: 0 });
   const isAnimating = useRef(false);
   const welcomeAnimationComplete = useRef(false);
+  const pulseAnimation = useRef<ReturnType<typeof animate> | null>(null);
 
   // Character refs and state
   const charRefs = useRef<(HTMLSpanElement | null)[]>([]);
@@ -188,6 +189,18 @@ const Home = () => {
     }
   }, [gameState, batControls]);
 
+  // Stop pulse animation when game starts
+  useEffect(() => {
+    if (gameState === "running" && pulseAnimation.current) {
+      pulseAnimation.current.cancel();
+      pulseAnimation.current = null;
+      // Reset ball scale to 1
+      if (ball.current) {
+        ball.current.style.transform = ball.current.style.transform.replace(/scale\([^)]*\)/, 'scale(1)');
+      }
+    }
+  }, [gameState]);
+
   // Play game over sound when game ends
   useEffect(() => {
     if (gameState === "over") {
@@ -227,7 +240,7 @@ const Home = () => {
           ],
           onComplete: () => {
             if (!isAnimating.current && ball.current) {
-              animate(ball.current, {
+              pulseAnimation.current = animate(ball.current, {
                 scale: [1, 1.2],
                 ease: "easeInOutSine",
                 duration: 1000,
