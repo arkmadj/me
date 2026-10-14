@@ -6,13 +6,18 @@ interface AnimatedCharacterProps {
 
 const AnimatedCharacter = ({ char, index, onRef }: AnimatedCharacterProps) => {
   if (char === " ") {
-    return <span key={index} style={{ display: "inline-block", width: "0.5em" }} />;
+    return (
+      <span key={index} style={{ display: "inline-block", width: "0.5em" }}>
+        {" "}
+      </span>
+    );
   }
 
   return (
     <span
       key={index}
       ref={(el) => onRef(index, el)}
+      aria-hidden="true"
       className="inline-block"
       style={{
         display: "inline-block",
@@ -32,7 +37,8 @@ interface AnimatedTextProps {
 
 export const AnimatedText = ({ text, charRefs, className = "" }: AnimatedTextProps) => {
   return (
-    <h1 className={className}>
+    // Letters are split for the physics, so give the heading its full text
+    <h1 className={className} aria-label={text}>
       {text.split("").map((char, index) => (
         <AnimatedCharacter
           key={index}
