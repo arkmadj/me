@@ -1,4 +1,5 @@
 import { forwardRef, useEffect, useRef } from 'react';
+import { prefersReducedMotion } from '@/hooks/useReveal';
 
 interface MatrixRainProps {
   className?: string;
@@ -58,11 +59,19 @@ const MatrixRain = forwardRef<HTMLCanvasElement, MatrixRainProps>(
       }
     };
 
-    const interval = setInterval(draw, 33); // ~30fps
+    // Reduced motion: run the rain forward once and leave it as a still frame
+    const reduceMotion = prefersReducedMotion();
+    const paintStill = () => {
+      for (let frame = 0; frame < 120; frame++) draw();
+    };
+
+    const interval = reduceMotion ? undefined : setInterval(draw, 33); // ~30fps
+    if (reduceMotion) paintStill();
 
     const handleResize = () => {
       canvas.width = window.innerWidth;
       canvas.height = window.innerHeight;
+      if (reduceMotion) paintStill();
     };
 
     window.addEventListener('resize', handleResize);
