@@ -10,6 +10,7 @@ export const ANIMATION_TIMINGS = {
   CHAR_DELAY: 50,
   CHAR_DURATION: 50,
   WELCOME_COMPLETE: 3750, // Calculated from: 2500 + (24 * 50) + 50
+  CONTROLS_HINT_DURATION: 3500,
 } as const;
 
 // Physics constants

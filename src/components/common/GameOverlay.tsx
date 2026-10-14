@@ -1,5 +1,7 @@
 import Button from "@/components/ui/Button";
 import { useGame } from "@/context";
+import { ROUTES } from "@/routes/paths";
+import { useNavigate } from "react-router-dom";
 import {
   HeartFilledIcon,
   HeartIcon,
@@ -8,16 +10,40 @@ import {
   SpeakerOffIcon,
 } from "@radix-ui/react-icons";
 
+const ScoreSummary = ({
+  score,
+  bestScore,
+  isNewBest,
+}: {
+  score: number;
+  bestScore: number;
+  isNewBest: boolean;
+}) => (
+  <div className='flex flex-col items-center gap-1 font-mono text-green-400'>
+    <div className='text-2xl'>Score: {score}</div>
+    {isNewBest && score > 0 ? (
+      <div className='text-lg tracking-widest uppercase animate-pulse drop-shadow-[0_0_8px_rgba(34,197,94,0.8)]'>
+        New best!
+      </div>
+    ) : (
+      <div className='text-lg text-green-500/70'>Best: {bestScore}</div>
+    )}
+  </div>
+);
+
 const GameOverlay = () => {
   const {
     gameState,
     score,
     lives,
+    bestScore,
+    isNewBest,
     mutedSound,
     setGameState,
     resetGame,
     toggleSound,
   } = useGame();
+  const navigate = useNavigate();
 
   const handleStartGame = () => {
     setGameState("running");
@@ -25,6 +51,11 @@ const GameOverlay = () => {
 
   const handleTryAgain = () => {
     resetGame();
+  };
+
+  const handleExploreWork = () => {
+    resetGame();
+    navigate(ROUTES.PROJECTS);
   };
 
   const handlePause = () => {
@@ -41,9 +72,10 @@ const GameOverlay = () => {
         <h1 className='text-5xl text-green-400 font-mono font-bold drop-shadow-[0_0_10px_rgba(34,197,94,0.8)]'>
           You Won!
         </h1>
-        <div className='text-2xl text-green-400 font-mono'>Score: {score}</div>
+        <ScoreSummary score={score} bestScore={bestScore} isNewBest={isNewBest} />
         <div className='flex gap-6 max-md:flex-col max-md:gap-3'>
           <Button onClick={handleTryAgain}>Play Again</Button>
+          <Button onClick={handleExploreWork}>Explore my work →</Button>
         </div>
       </main>
     );
@@ -55,9 +87,10 @@ const GameOverlay = () => {
         <h1 className='text-5xl text-green-400 font-mono font-bold drop-shadow-[0_0_10px_rgba(34,197,94,0.8)]'>
           Game Over
         </h1>
-        <div className='text-2xl text-green-400 font-mono'>Score: {score}</div>
+        <ScoreSummary score={score} bestScore={bestScore} isNewBest={isNewBest} />
         <div className='flex gap-6 max-md:flex-col max-md:gap-3'>
           <Button onClick={handleTryAgain}>Try Again</Button>
+          <Button onClick={handleExploreWork}>Explore my work →</Button>
         </div>
       </main>
     );
@@ -77,6 +110,9 @@ const GameOverlay = () => {
           <Button onClick={handleStartGame}>Resume Game</Button>
           <Button className='w-full' onClick={handleTryAgain}>
             Reset Game
+          </Button>
+          <Button className='w-full' onClick={handleExploreWork}>
+            Explore my work →
           </Button>
         </div>
       </main>

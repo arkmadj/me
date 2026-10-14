@@ -3,6 +3,7 @@ import { useEffect, useRef, useCallback } from 'react';
 import { animate, stagger } from 'animejs';
 import { ROUTES } from '@/routes/paths';
 import { useGame } from '@/context';
+import { prefersReducedMotion } from '@/hooks/useReveal';
 
 const Navigation = () => {
   const location = useLocation();
@@ -21,6 +22,14 @@ const Navigation = () => {
   const animateNavItems = useCallback((show: boolean) => {
     const items = navItemRefs.current.filter((item) => item !== null);
     if (items.length === 0) return;
+
+    if (prefersReducedMotion()) {
+      items.forEach((item) => {
+        item.style.opacity = show ? '1' : '0';
+        item.style.transform = 'none';
+      });
+      return;
+    }
 
     const config = show
       ? {
@@ -69,7 +78,12 @@ const Navigation = () => {
 
 
   return (
-    <nav ref={navRef} className='fixed bottom-0 left-0 right-0 z-50 p-6'>
+    // Hidden during play, so it must not catch taps meant for the paddle
+    <nav
+      ref={navRef}
+      inert={gameState === 'running'}
+      className={`fixed bottom-0 left-0 right-0 z-50 p-6 ${gameState === 'running' ? 'pointer-events-none' : ''}`}
+    >
       <ul className='flex gap-6 justify-center'>
         {navItems.map((item, index) => (
           <li
