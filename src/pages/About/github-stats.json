@@ -1,0 +1,38 @@
+{
+  "joined": "2016-08-13",
+  "repos": 75,
+  "commits": 4308,
+  "mergedPRs": 65,
+  "languages": [
+    {
+      "name": "TypeScript",
+      "repos": 20
+    },
+    {
+      "name": "JavaScript",
+      "repos": 12
+    },
+    {
+      "name": "Rust",
+      "repos": 12
+    },
+    {
+      "name": "Vue",
+      "repos": 6
+    },
+    {
+      "name": "Python",
+      "repos": 4
+    },
+    {
+      "name": "Go",
+      "repos": 4
+    },
+    {
+      "name": "Other",
+      "repos": 7
+    }
+  ],
+  "linesWritten": null,
+  "fetchedAt": "2026-10-14"
+}
