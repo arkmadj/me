@@ -12,6 +12,8 @@ export interface GameContextType {
   gameState: GameState;
   score: number;
   lives: number;
+  bestScore: number;
+  isNewBest: boolean;
   mutedSound: boolean;
   setGameState: (state: GameState) => void;
   incrementScore: (points: number) => void;
