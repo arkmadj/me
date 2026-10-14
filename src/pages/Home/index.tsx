@@ -1,4 +1,4 @@
-import { useEffect, useRef, useCallback } from "react";
+import { useEffect, useRef, useCallback, useState } from "react";
 import {
   animate,
   createScope,
@@ -16,11 +16,15 @@ import { Ball } from "./components/Ball";
 import { Bat } from "./components/Bat";
 import { isDeepEqual } from "@/lib/utils";
 import { useSound } from "@/hooks/useSound";
+import { prefersReducedMotion } from "@/hooks/useReveal";
+import { PROFILE } from "@/pages/About/data";
+import { RotatingText } from "@/components/ui/RotatingText";
 
 const Home = () => {
   // Refs for DOM elements
   const root = useRef<HTMLDivElement | null>(null);
   const intro = useRef<HTMLParagraphElement | null>(null);
+  const tagline = useRef<HTMLParagraphElement | null>(null);
   const ball = useRef<HTMLDivElement | null>(null);
   const bat = useRef<HTMLDivElement | null>(null);
 
@@ -32,6 +36,13 @@ const Home = () => {
   const isAnimating = useRef(false);
   const welcomeAnimationComplete = useRef(false);
   const pulseAnimation = useRef<ReturnType<typeof animate> | null>(null);
+  const [showPlayHint, setShowPlayHint] = useState(false);
+  const [showControlsHint, setShowControlsHint] = useState(false);
+  const controlsHintShown = useRef(false);
+  const controlsHintTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const [isTouchDevice] = useState(
+    () => window.matchMedia("(pointer: coarse)").matches,
+  );
 
   // Character refs and state
   const charRefs = useRef<(HTMLSpanElement | null)[]>([]);
@@ -120,11 +131,28 @@ const Home = () => {
     gameStateRef,
   });
 
+  // Show bat controls hint briefly on the first launch only
+  const revealControlsHint = useCallback(() => {
+    if (controlsHintShown.current) return;
+    controlsHintShown.current = true;
+    setShowControlsHint(true);
+    controlsHintTimer.current = setTimeout(() => {
+      setShowControlsHint(false);
+    }, ANIMATION_TIMINGS.CONTROLS_HINT_DURATION);
+  }, []);
+
+  useEffect(() => {
+    return () => {
+      if (controlsHintTimer.current) clearTimeout(controlsHintTimer.current);
+    };
+  }, []);
+
   // Launch ball function - wrapped in useCallback to prevent recreating
   const launchBall = useCallback(() => {
     if (!ball.current) return;
 
     setGameState("running");
+    revealControlsHint();
 
     isAnimating.current = true;
     if (ballDraggable.current) {
@@ -133,7 +161,7 @@ const Home = () => {
 
     // Launch with default velocity
     ballAnimation.animateBall({ x: 0, y: 0 }, { vx: 0, vy: -7 });
-  }, [ballAnimation, setGameState]);
+  }, [ballAnimation, setGameState, revealControlsHint]);
 
   const gameControls = useGameControls({
     gameStateRef,
@@ -218,12 +246,13 @@ const Home = () => {
   // Initial animations setup
   useEffect(() => {
     if (!root.current) return;
+    const reduceMotion = prefersReducedMotion();
 
     scope.current = createScope({ root: root.current }).add(() => {
       // Ball animation
       if (ball.current) {
-        // Initial scale-in animation
-        animate(ball.current, {
+        // Initial scale-in animation (skipped for reduced motion: ball stays put)
+        if (!reduceMotion) animate(ball.current, {
           scale: [
             {
               from: 40,
@@ -264,6 +293,7 @@ const Home = () => {
           onRelease: (draggable) => {
             dragEnd.current = { x: draggable.x, y: draggable.y };
             setGameState("running");
+            revealControlsHint();
 
             const velocity = ballAnimation.calculateLaunchVelocity(
               dragStart.current,
@@ -293,6 +323,16 @@ const Home = () => {
         }
       }
 
+      // Reduced motion: show all intro content immediately
+      if (reduceMotion) {
+        if (intro.current) intro.current.textContent = INTRO_TEXT;
+        if (tagline.current) tagline.current.style.opacity = "1";
+        charRefs.current.forEach((charEl) => {
+          if (charEl) charEl.style.opacity = "1";
+        });
+        return;
+      }
+
       // Intro typing effect
       if (intro.current) {
         animate(intro.current, {
@@ -303,6 +343,15 @@ const Home = () => {
             duration: ANIMATION_TIMINGS.INTRO_DURATION,
             delay: ANIMATION_TIMINGS.INTRO_DELAY,
           }),
+        });
+      }
+
+      // Tagline fades in once the intro has finished typing
+      if (tagline.current) {
+        animate(tagline.current, {
+          opacity: { from: 0, to: 1 },
+          duration: 600,
+          delay: ANIMATION_TIMINGS.INTRO_DELAY + ANIMATION_TIMINGS.INTRO_DURATION,
         });
       }
 
@@ -326,10 +375,11 @@ const Home = () => {
     // Enable dragging after welcome animation
     const enableDraggingTimer = setTimeout(() => {
       welcomeAnimationComplete.current = true;
+      setShowPlayHint(true);
       if (ballDraggable.current) {
         ballDraggable.current.enable();
       }
-    }, ANIMATION_TIMINGS.WELCOME_COMPLETE);
+    }, reduceMotion ? 0 : ANIMATION_TIMINGS.WELCOME_COMPLETE);
 
     return () => {
       scope.current?.revert();
@@ -379,11 +429,21 @@ const Home = () => {
       ref={root}
       className='relative z-10 h-full flex flex-col pointer-events-none'
     >
-      <div className='flex items-center justify-center pt-4'>
+      <div className='flex flex-col items-center justify-center pt-4'>
+        {/* Scrambled while typing, so screen readers get the plain text instead */}
         <p
           ref={intro}
+          aria-hidden='true'
           className={`font-mono text-lg max-md:text-base mb-2 ${gameState === "new" ? "text-green-500" : "text-transparent"}`}
         />
+        <p className='sr-only'>{INTRO_TEXT}</p>
+        <p
+          ref={tagline}
+          className={`font-mono text-sm max-md:text-xs tracking-wider opacity-0 transition-colors duration-300 ${gameState === "new" ? "text-green-500/70" : "text-transparent"}`}
+        >
+          {PROFILE.role} ·{" "}
+          <RotatingText items={PROFILE.focuses} active={gameState === "new"} />
+        </p>
       </div>
 
       <div className='grid place-items-center mt-52 max-md:mt-20'>
@@ -395,6 +455,33 @@ const Home = () => {
       </div>
 
       <Ball ref={ball} />
+
+      {/* Play hint - shown once the ball is ready to launch */}
+      <div
+        className={`absolute left-1/2 top-1/2 -translate-x-1/2 mt-10 font-mono text-sm max-md:text-xs text-green-500/80 tracking-widest uppercase whitespace-nowrap transition-opacity duration-700 ${
+          showPlayHint && (gameState === "new" || gameState === "restart")
+            ? "opacity-100"
+            : "opacity-0"
+        }`}
+        aria-live='polite'
+      >
+        {isTouchDevice
+          ? "> tap or flick the ball to play"
+          : "> press space or drag the ball to play"}
+        <span className='animate-pulse'>█</span>
+      </div>
+
+      {/* Controls hint - shown above the bat right after the first launch */}
+      <div
+        className={`absolute bottom-16 left-1/2 -translate-x-1/2 font-mono text-sm max-md:text-xs text-green-500/80 tracking-widest uppercase whitespace-nowrap transition-opacity duration-700 ${
+          showControlsHint && gameState === "running" ? "opacity-100" : "opacity-0"
+        }`}
+        aria-live='polite'
+      >
+        {isTouchDevice
+          ? "drag anywhere to move the paddle"
+          : "use ← → to move the paddle"}
+      </div>
       <Bat ref={bat} />
     </main>
   );
