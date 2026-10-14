@@ -4,18 +4,26 @@ import SplashScreen from "@/components/common/SplashScreen";
 import Navigation from "@/components/common/Navigation";
 import GameOverlay from "@/components/common/GameOverlay";
 import { GameProvider, useGame } from "@/context";
+import { prefersReducedMotion } from "@/hooks/useReveal";
+
+// Each cell: 1px border on a black fill, with a 1px gap between neighbours
+const CELL_BORDER = "rgb(3 46 21 / 0.3)";
+const CELL_GAP = "#0a0f0a";
+const gridLines = (direction: "right" | "bottom") =>
+  `linear-gradient(to ${direction}, ${CELL_BORDER} 0 1px, transparent 1px calc(100% - 2px), ${CELL_BORDER} calc(100% - 2px) calc(100% - 1px), ${CELL_GAP} calc(100% - 1px))`;
+const GRID_BACKGROUND = `${gridLines("right")}, ${gridLines("bottom")}`;
 
 const LayoutContent = () => {
-  const [gridSize, setGridSize] = useState({ cols: 24, rows: 24 });
-  const [showSplash, setShowSplash] = useState(true);
+  const [cellSize, setCellSize] = useState(50);
+  const [showSplash, setShowSplash] = useState(() => !prefersReducedMotion());
   const { gameState } = useGame();
 
   useEffect(() => {
     const calculateGrid = () => {
       const minCellSize = 50; // Minimum cell size in pixels
-      const cols = Math.floor(window.innerWidth / minCellSize);
-      const rows = Math.floor(window.innerHeight / minCellSize);
-      setGridSize({ cols, rows });
+      // Stretch cells so whole columns fill the viewport width
+      const cols = Math.max(1, Math.floor(window.innerWidth / minCellSize));
+      setCellSize(window.innerWidth / cols);
     };
 
     calculateGrid();
@@ -31,20 +39,12 @@ const LayoutContent = () => {
     <div className='h-svh w-full bg-[#0a0f0a] relative overflow-hidden isolate overscroll-none'>
       {/* Background grid */}
       <div
-        className='absolute inset-0 grid gap-px z-10'
+        className='absolute inset-0 z-10 bg-black'
         style={{
-          gridTemplateColumns: `repeat(${gridSize.cols}, 1fr)`,
-          gridTemplateRows: `repeat(${gridSize.rows}, 1fr)`,
+          backgroundImage: GRID_BACKGROUND,
+          backgroundSize: `${cellSize}px ${cellSize}px`,
         }}
-      >
-        {Array.from({ length: gridSize.cols * gridSize.rows }).map((_, i) => (
-          <div
-            key={i}
-            className='aspect-square bg-black border border-green-950/30'
-            // onClick={handleCellClick(i)}
-          />
-        ))}
-      </div>
+      />
 
       {/* Overlay */}
       {["paused", "over", "running", "won"].includes(gameState) && <GameOverlay />}
