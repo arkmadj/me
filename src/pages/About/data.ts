@@ -22,13 +22,6 @@ export const PROFILE = {
     'I build production web and mobile apps that move business metrics: faster apps, conversion-driven marketing sites, and test suites that let teams ship with confidence. I own features end to end, from early architecture calls to UI polish. Right now I benchmark AI models at Turing, and on the side I build real-time, offline-first products on the edge.',
 };
 
-export const STATS = [
-  { value: 5, suffix: '+', label: 'years shipping' },
-  { value: 6, suffix: '', label: 'teams joined' },
-  { value: 70, suffix: '%', label: 'faster apps' },
-  { value: 35, suffix: '%', label: 'more customers' },
-];
-
 const MS_PER_YEAR = 365.25 * 24 * 60 * 60 * 1000;
 const yearsOnGithub = Math.floor((Date.now() - Date.parse(githubStats.joined)) / MS_PER_YEAR);
 
@@ -189,6 +182,40 @@ export const SKILL_GROUPS = [
       'Open Source',
       'Team Leadership',
     ],
+  },
+];
+
+const skillCount = (label: string) => SKILL_GROUPS.find((g) => g.label === label)?.items.length ?? 0;
+
+/** One tile per strength: `path` reads like a directory, `stack` names the tools behind it. */
+export const STATS = [
+  {
+    path: 'experience',
+    value: 5,
+    suffix: '+',
+    label: 'years in production',
+    stack: ['React', 'TypeScript', 'Node.js'],
+  },
+  {
+    path: 'frontend',
+    value: skillCount('frontend'),
+    suffix: '',
+    label: 'ui tools',
+    stack: ['Next.js', 'React Native', 'PWAs'],
+  },
+  {
+    path: 'quality',
+    value: skillCount('testing & quality'),
+    suffix: '',
+    label: 'testing tools',
+    stack: ['Playwright', 'Cypress', 'Vitest'],
+  },
+  {
+    path: 'realtime',
+    value: skillCount('real-time & cloud'),
+    suffix: '',
+    label: 'edge & infra tools',
+    stack: ['WebRTC', 'Workers', 'Docker'],
   },
 ];
 

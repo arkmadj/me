@@ -8,10 +8,14 @@ interface StatCounterProps {
   value: number;
   suffix: string;
   label: string;
+  /** Directory-style tag shown above the value, e.g. `quality`. */
+  path?: string;
+  /** Key technologies behind the number. */
+  stack?: string[];
 }
 
 /** Counts up from zero the first time it scrolls into view. */
-export const StatCounter = ({ value, suffix, label }: StatCounterProps) => {
+export const StatCounter = ({ value, suffix, label, path, stack }: StatCounterProps) => {
   const ref = useRef<HTMLDivElement>(null);
   const [count, setCount] = useState(() => (prefersReducedMotion() ? value : 0));
 
@@ -46,13 +50,24 @@ export const StatCounter = ({ value, suffix, label }: StatCounterProps) => {
     <div
       ref={ref}
       data-reveal-item
-      className='rounded-lg border border-green-400/20 bg-black/70 p-4 text-center hover:border-green-400/60 hover:-translate-y-1 transition-all duration-300'
+      className='group flex flex-col rounded-lg border border-green-400/20 bg-black/70 p-4 hover:border-green-400/60 hover:-translate-y-1 transition-all duration-300'
     >
+      {path && (
+        <div className='mb-2 text-[11px] text-green-600'>
+          <span className='text-green-700'>~/</span>
+          {path}
+        </div>
+      )}
       <div className='text-3xl md:text-4xl font-bold text-green-300 tabular-nums drop-shadow-[0_0_10px_rgba(34,197,94,0.5)]'>
         {format(count)}
-        {suffix}
+        <span className='text-green-500/80'>{suffix}</span>
       </div>
       <div className='mt-1 text-xs uppercase tracking-widest text-green-500/70'>{label}</div>
+      {stack && (
+        <div className='mt-3 border-t border-green-400/10 pt-2 text-[11px] leading-relaxed text-green-400/60 group-hover:text-green-300/90 transition-colors'>
+          {stack.join(' · ')}
+        </div>
+      )}
     </div>
   );
 };
