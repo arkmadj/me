@@ -12,6 +12,7 @@ import { useBallAnimation } from "./hooks/useBallAnimation";
 import { useBatControls } from "./hooks/useBatControls";
 import { useGameControls } from "./hooks/useGameControls";
 import { AnimatedText } from "./components/AnimatedText";
+import { Backdrop } from "./components/Backdrop";
 import { Ball } from "./components/Ball";
 import { Bat } from "./components/Bat";
 import { isDeepEqual } from "@/lib/utils";
@@ -19,6 +20,11 @@ import { useSound } from "@/hooks/useSound";
 import { prefersReducedMotion } from "@/hooks/useReveal";
 import { PROFILE } from "@/pages/About/data";
 import { RotatingText } from "@/components/ui/RotatingText";
+import { GLOW_DOT, PILL } from "@/components/ui/pill";
+import { Kbd } from "@/components/ui/Kbd";
+import { HudFrame } from "@/components/common/HudFrame";
+
+const HINT_PILL = `${PILL} absolute left-1/2 -translate-x-1/2 transition-opacity duration-700`;
 
 const Home = () => {
   // Refs for DOM elements
@@ -429,28 +435,35 @@ const Home = () => {
       ref={root}
       className='relative z-10 h-full flex flex-col pointer-events-none'
     >
-      <div className='flex flex-col items-center justify-center pt-4'>
+      <Backdrop />
+      <HudFrame visible={gameState === "new"} />
+
+      <div className='flex flex-col items-center justify-center pt-8 max-md:pt-6'>
         {/* Scrambled while typing, so screen readers get the plain text instead */}
         <p
           ref={intro}
           aria-hidden='true'
-          className={`font-mono text-lg max-md:text-base mb-2 ${gameState === "new" ? "text-green-500" : "text-transparent"}`}
+          className={`font-mono text-xl max-md:text-base mb-2 transition-colors duration-300 drop-shadow-[0_0_8px_rgba(34,197,94,0.5)] ${gameState === "new" ? "text-green-300" : "text-transparent"}`}
         />
-        <p className='sr-only'>{INTRO_TEXT}</p>
+        <h1 className='sr-only'>{INTRO_TEXT}</h1>
         <p
           ref={tagline}
-          className={`font-mono text-sm max-md:text-xs tracking-wider opacity-0 transition-colors duration-300 ${gameState === "new" ? "text-green-500/70" : "text-transparent"}`}
+          className={`font-mono text-sm max-md:text-xs tracking-wider opacity-0 transition-colors duration-300 ${gameState === "new" ? "text-green-500/80" : "text-transparent"}`}
         >
-          {PROFILE.role} ·{" "}
-          <RotatingText items={PROFILE.focuses} active={gameState === "new"} />
+          {PROFILE.role} <span className={gameState === "new" ? "text-green-700" : ""}>//</span>{" "}
+          <RotatingText
+            items={PROFILE.focuses}
+            active={gameState === "new"}
+            className={gameState === "new" ? "text-cyan-300" : ""}
+          />
         </p>
       </div>
 
-      <div className='grid place-items-center mt-52 max-md:mt-20'>
+      <div className='grid place-items-center mt-[clamp(5rem,22vh,13rem)] max-md:mt-20'>
         <AnimatedText
           text={WELCOME_TEXT}
           charRefs={charRefs}
-          className='text-3xl max-md:text-2xl text-green-400 font-mono font-bold tracking-wider drop-shadow-[0_0_10px_rgba(34,197,94,0.8)] relative'
+          className='text-5xl max-lg:text-4xl max-md:text-2xl text-green-400 font-mono font-bold tracking-wider drop-shadow-[0_0_14px_rgba(34,197,94,0.65)] relative'
         />
       </div>
 
@@ -458,29 +471,38 @@ const Home = () => {
 
       {/* Play hint - shown once the ball is ready to launch */}
       <div
-        className={`absolute left-1/2 top-1/2 -translate-x-1/2 mt-10 font-mono text-sm max-md:text-xs text-green-500/80 tracking-widest uppercase whitespace-nowrap transition-opacity duration-700 ${
+        className={`${HINT_PILL} top-1/2 mt-10 ${
           showPlayHint && (gameState === "new" || gameState === "restart")
             ? "opacity-100"
             : "opacity-0"
         }`}
         aria-live='polite'
       >
-        {isTouchDevice
-          ? "> tap or flick the ball to play"
-          : "> press space or drag the ball to play"}
-        <span className='animate-pulse'>█</span>
+        <span className={GLOW_DOT} />
+        {isTouchDevice ? (
+          "tap or flick the ball to play"
+        ) : (
+          <span>
+            press <Kbd>space</Kbd> or drag the ball to play
+          </span>
+        )}
       </div>
 
       {/* Controls hint - shown above the bat right after the first launch */}
       <div
-        className={`absolute bottom-16 left-1/2 -translate-x-1/2 font-mono text-sm max-md:text-xs text-green-500/80 tracking-widest uppercase whitespace-nowrap transition-opacity duration-700 ${
+        className={`${HINT_PILL} bottom-16 ${
           showControlsHint && gameState === "running" ? "opacity-100" : "opacity-0"
         }`}
         aria-live='polite'
       >
-        {isTouchDevice
-          ? "drag anywhere to move the paddle"
-          : "use ← → to move the paddle"}
+        {isTouchDevice ? (
+          "drag anywhere to move the paddle"
+        ) : (
+          <span>
+            use <Kbd>←</Kbd>
+            <Kbd>→</Kbd> to move the paddle
+          </span>
+        )}
       </div>
       <Bat ref={bat} />
     </main>

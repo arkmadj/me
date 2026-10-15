@@ -6,12 +6,13 @@ import tailwindcss from '@tailwindcss/vite'
 import { qrcode } from 'vite-plugin-qrcode'
 
 import { cloudflare } from "@cloudflare/vite-plugin";
+import { seo } from './seo-plugin'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 
 // https://vite.dev/config/
 export default defineConfig({
-  plugins: [react(), tailwindcss(), cloudflare(), qrcode()],
+  plugins: [react(), tailwindcss(), cloudflare(), qrcode(), seo()],
   server: {
     host: true, // Enable network access
   },

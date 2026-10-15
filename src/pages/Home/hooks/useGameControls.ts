@@ -41,6 +41,15 @@ export const useGameControls = ({
           setGameState("running");
         }
       }
+
+      // Escape toggles the pause menu (it never launches a new ball)
+      if (e.key === "Escape") {
+        if (gameStateRef.current === "running") {
+          setGameState("paused");
+        } else if (gameStateRef.current === "paused") {
+          setGameState("running");
+        }
+      }
     },
     [setGameState, welcomeAnimationComplete, launchBall, onKeyDown, gameStateRef]
   );

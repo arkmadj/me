@@ -5,6 +5,7 @@ import Navigation from "@/components/common/Navigation";
 import GameOverlay from "@/components/common/GameOverlay";
 import { GameProvider, useGame } from "@/context";
 import { prefersReducedMotion } from "@/hooks/useReveal";
+import { usePageMeta } from "@/hooks/usePageMeta";
 
 // Each cell: 1px border on a black fill, with a 1px gap between neighbours
 const CELL_BORDER = "rgb(3 46 21 / 0.3)";
@@ -13,10 +14,14 @@ const gridLines = (direction: "right" | "bottom") =>
   `linear-gradient(to ${direction}, ${CELL_BORDER} 0 1px, transparent 1px calc(100% - 2px), ${CELL_BORDER} calc(100% - 2px) calc(100% - 1px), ${CELL_GAP} calc(100% - 1px))`;
 const GRID_BACKGROUND = `${gridLines("right")}, ${gridLines("bottom")}`;
 
+// Crawlers should index the page, not a 3.5s splash animation
+const isCrawler = () => /bot|crawl|spider|slurp|lighthouse|facebookexternalhit|embedly|preview/i.test(navigator.userAgent);
+
 const LayoutContent = () => {
   const [cellSize, setCellSize] = useState(50);
-  const [showSplash, setShowSplash] = useState(() => !prefersReducedMotion());
+  const [showSplash, setShowSplash] = useState(() => !prefersReducedMotion() && !isCrawler());
   const { gameState } = useGame();
+  usePageMeta();
 
   useEffect(() => {
     const calculateGrid = () => {

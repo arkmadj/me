@@ -4,6 +4,8 @@ import { animate, stagger } from 'animejs';
 import { ROUTES } from '@/routes/paths';
 import { useGame } from '@/context';
 import { prefersReducedMotion } from '@/hooks/useReveal';
+import { GLOW_DOT, KEYCAP, PILL } from '@/components/ui/pill';
+import { cn } from '@/lib/utils';
 
 const Navigation = () => {
   const location = useLocation();
@@ -84,7 +86,14 @@ const Navigation = () => {
       inert={gameState === 'running'}
       className={`fixed bottom-0 left-0 right-0 z-50 p-6 ${gameState === 'running' ? 'pointer-events-none' : ''}`}
     >
-      <ul className='flex gap-6 justify-center'>
+      {/* Fades with its items so an empty pill isn't left behind during play */}
+      <ul
+        className={cn(
+          PILL,
+          'mx-auto w-fit gap-1 p-1 max-md:text-xs transition-opacity duration-500',
+          gameState === 'running' && 'opacity-0',
+        )}
+      >
         {navItems.map((item, index) => (
           <li
             key={item.path}
@@ -94,17 +103,16 @@ const Navigation = () => {
           >
             <Link
               to={item.path}
-              className={`
-                text-green-400 font-mono text-sm tracking-wider
-                transition-all duration-300 hover:text-green-300
-                hover:drop-shadow-[0_0_8px_rgba(34,197,94,0.8)]
-                ${location.pathname === item.path
-                  ? 'drop-shadow-[0_0_8px_rgba(34,197,94,0.8)] font-bold'
-                  : ''
-                }
-              `}
+              aria-current={location.pathname === item.path ? 'page' : undefined}
+              className={cn(
+                'flex items-center gap-2 px-4 py-1.5 max-md:py-2 transition-colors duration-300',
+                location.pathname === item.path
+                  ? KEYCAP
+                  : 'rounded-full border border-transparent hover:bg-green-400/10 hover:text-green-300',
+              )}
               onClick={resetGame}
             >
+              {location.pathname === item.path && <span className={GLOW_DOT} />}
               {item.label}
             </Link>
           </li>
