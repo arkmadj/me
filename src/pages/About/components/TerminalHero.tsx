@@ -47,7 +47,7 @@ export const TerminalHero = () => {
           </h1>
           <p className='text-lg md:text-xl text-green-400'>
             {PROFILE.role} <span className='text-green-600'>//</span>{' '}
-            <RotatingText items={PROFILE.focuses} active={done} className='text-cyan-300' />
+            <RotatingText items={PROFILE.focuses} active={done} className='text-cyan-300' reserveSpace />
           </p>
           <p className='max-w-2xl text-green-200/80 leading-relaxed'>{PROFILE.summary}</p>
 
