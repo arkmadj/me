@@ -445,7 +445,7 @@ const Home = () => {
           aria-hidden='true'
           className={`font-mono text-xl max-md:text-base mb-2 transition-colors duration-300 drop-shadow-[0_0_8px_rgba(34,197,94,0.5)] ${gameState === "new" ? "text-green-300" : "text-transparent"}`}
         />
-        <p className='sr-only'>{INTRO_TEXT}</p>
+        <h1 className='sr-only'>{INTRO_TEXT}</h1>
         <p
           ref={tagline}
           className={`font-mono text-sm max-md:text-xs tracking-wider opacity-0 transition-colors duration-300 ${gameState === "new" ? "text-green-500/80" : "text-transparent"}`}

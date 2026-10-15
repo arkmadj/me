@@ -37,8 +37,8 @@ interface AnimatedTextProps {
 
 export const AnimatedText = ({ text, charRefs, className = "" }: AnimatedTextProps) => {
   return (
-    // Letters are split for the physics, so give the heading its full text
-    <h1 className={className} aria-label={text}>
+    // Letters are split for the physics, so give the text its full label
+    <p role="img" className={className} aria-label={text}>
       {text.split("").map((char, index) => (
         <AnimatedCharacter
           key={index}
@@ -51,6 +51,6 @@ export const AnimatedText = ({ text, charRefs, className = "" }: AnimatedTextPro
           }}
         />
       ))}
-    </h1>
+    </p>
   );
 };
