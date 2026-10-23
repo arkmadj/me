@@ -1,4 +1,4 @@
-// Ambient layers between the grid and the game: glow, scanlines, scan beam, vignette
+// Ambient layers between the grid and the page content: glow, scanlines, scan beam, vignette
 export const Backdrop = () => (
   <div aria-hidden='true' className='absolute inset-0 -z-10 overflow-hidden pointer-events-none'>
     {/* Aurora glow behind the title */}
