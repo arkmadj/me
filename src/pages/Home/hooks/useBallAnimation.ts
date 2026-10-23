@@ -20,8 +20,8 @@ interface UseBallAnimationProps {
   welcomeAnimationComplete: React.RefObject<boolean>;
   muted?: boolean;
   onBallHitBottom?: () => void;
-  onCharacterHit?: () => void;
-  onCharacterHitBat?: () => void;
+  onCharacterHit?: (index: number) => void;
+  onCharacterHitBat?: (index: number) => void;
   onCharacterHitBottom?: () => void;
 }
 
