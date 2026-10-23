@@ -5,7 +5,7 @@ export const Bat = forwardRef<HTMLDivElement>((_, ref) => {
   return (
     <div
       ref={ref}
-      className="w-1/6 max-md:w-20 h-6 bg-green-500 rounded-lg shadow-[0_0_20px_rgba(34,197,94,0.6)] absolute bottom-6 left-1/2 -translate-x-1/2 origin-bottom"
+      className="w-1/6 max-md:w-20 h-6 bg-green-500 rounded-xl shadow-[0_0_20px_rgba(34,197,94,0.6)] absolute bottom-6 left-1/2 -translate-x-1/2 origin-bottom"
     />
   );
 });
