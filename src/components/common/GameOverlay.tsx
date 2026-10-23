@@ -138,7 +138,7 @@ const GameOverlay = () => {
 
   const handleExploreWork = () => {
     resetGame();
-    navigate(ROUTES.PROJECTS);
+    navigate(ROUTES.PROJECTS, { viewTransition: true });
   };
 
   if (gameState === "won" || gameState === "over") {
