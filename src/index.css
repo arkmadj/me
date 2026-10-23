@@ -55,6 +55,184 @@ body {
 * {
   user-select: none;
 }
+
+/*
+ * Scrollbars: a thin phosphor bar on a dark rail, scanlined like the rest of the CRT.
+ * Chromium 121+ ignores the ::-webkit-scrollbar rules once scrollbar-color is set,
+ * so the standard properties are only a fallback for browsers without the pseudo-elements (Firefox).
+ */
+:root {
+  --scrollbar-size: 8px;
+  --scrollbar-track: #0a0f0a;
+  --scrollbar-thumb: rgb(74 222 128 / 0.45);
+  --scrollbar-thumb-hover: rgb(134 239 172 / 0.85);
+}
+
+@supports not selector(::-webkit-scrollbar) {
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: var(--scrollbar-thumb) var(--scrollbar-track);
+  }
+}
+
+::-webkit-scrollbar {
+  width: var(--scrollbar-size);
+  height: var(--scrollbar-size);
+}
+
+::-webkit-scrollbar-track {
+  background: var(--scrollbar-track);
+  box-shadow: inset 1px 0 0 rgb(74 222 128 / 0.12);
+}
+
+::-webkit-scrollbar-thumb {
+  background:
+    repeating-linear-gradient(to bottom, transparent 0 2px, rgb(0 0 0 / 0.35) 2px 3px),
+    var(--scrollbar-thumb);
+  border: 1px solid rgb(134 239 172 / 0.35);
+  box-shadow: inset 0 0 4px rgb(34 197 94 / 0.8);
+}
+
+::-webkit-scrollbar-thumb:hover,
+::-webkit-scrollbar-thumb:active {
+  background:
+    repeating-linear-gradient(to bottom, transparent 0 2px, rgb(0 0 0 / 0.3) 2px 3px),
+    var(--scrollbar-thumb-hover);
+  box-shadow: inset 0 0 6px rgb(220 252 231 / 0.7);
+}
+
+::-webkit-scrollbar-corner {
+  background: var(--scrollbar-track);
+}
+
+/*
+ * Route transitions: a CRT power cycle. Only the page content animates; grid and nav stay put.
+ * The old page collapses into a white scanline and shrinks to a dot, then the new page
+ * stretches back out of that line, overshoots, and settles with a phosphor flicker and jitter.
+ * Filters and transforms keep the same function list in every keyframe so they interpolate smoothly.
+ */
+:root {
+  --crt-off: 300ms;
+  --crt-on: 460ms;
+}
+
+/* Scanline strength, animated through the mask below: 1 is a clean picture, lower shows darker lines */
+@property --crt-scanline {
+  syntax: "<number>";
+  inherits: false;
+  initial-value: 1;
+}
+
+::view-transition-group(root) {
+  animation: none;
+}
+
+/* The glow lives on the group so it isn't squashed along with the scaled-down page */
+::view-transition-group(page) {
+  animation: crt-glow calc(var(--crt-off) + var(--crt-on)) linear both;
+}
+
+::view-transition-old(page),
+::view-transition-new(page) {
+  mask-image: repeating-linear-gradient(
+    to bottom,
+    #000 0 2px,
+    rgb(0 0 0 / var(--crt-scanline)) 2px 4px
+  );
+}
+
+::view-transition-old(page) {
+  animation: crt-off var(--crt-off) linear both;
+}
+
+::view-transition-new(page) {
+  animation: crt-on var(--crt-on) linear var(--crt-off) both;
+}
+
+@keyframes crt-off {
+  0% {
+    transform: translateX(0) scale(1, 1);
+    filter: brightness(1) invert(0);
+    --crt-scanline: 1;
+    animation-timing-function: cubic-bezier(0.7, 0, 0.84, 0);
+  }
+  40% {
+    transform: translateX(0) scale(1, 0.004);
+    filter: brightness(3) invert(0);
+    --crt-scanline: 0.4;
+  }
+  55% {
+    transform: translateX(0) scale(1, 0.004);
+    filter: brightness(0) invert(1);
+    animation-timing-function: cubic-bezier(0.5, 0, 0.75, 0);
+  }
+  100% {
+    transform: translateX(0) scale(0, 0.004);
+    filter: brightness(0) invert(1);
+    opacity: 0;
+  }
+}
+
+@keyframes crt-on {
+  0% {
+    transform: translateX(0) scale(0, 0.004);
+    filter: brightness(0) invert(1);
+    --crt-scanline: 0.4;
+    animation-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  22% {
+    transform: translateX(0) scale(1, 0.004);
+    filter: brightness(0) invert(1);
+  }
+  30% {
+    transform: translateX(0) scale(1, 0.004);
+    filter: brightness(3) invert(0);
+    animation-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  52% {
+    transform: translateX(0) scale(1, 1.025);
+    filter: brightness(1.8) invert(0);
+    --crt-scanline: 0.4;
+  }
+  62% {
+    transform: translateX(-3px) scale(1, 0.995);
+    filter: brightness(0.75) invert(0);
+  }
+  72% {
+    transform: translateX(2px) scale(1, 1);
+    filter: brightness(1.25) invert(0);
+  }
+  82% {
+    transform: translateX(-1px) scale(1, 1);
+    filter: brightness(0.95) invert(0);
+  }
+  100% {
+    transform: translateX(0) scale(1, 1);
+    filter: brightness(1) invert(0);
+    --crt-scanline: 1;
+  }
+}
+
+@keyframes crt-glow {
+  0%,
+  14% {
+    filter: drop-shadow(0 0 0 rgb(74 222 128 / 0));
+  }
+  22% {
+    filter: drop-shadow(0 0 8px rgb(74 222 128 / 0.9));
+  }
+  40% {
+    filter: drop-shadow(0 0 3px rgb(74 222 128 / 0.5));
+  }
+  50% {
+    filter: drop-shadow(0 0 10px rgb(74 222 128 / 0.9));
+  }
+  70%,
+  100% {
+    filter: drop-shadow(0 0 0 rgb(74 222 128 / 0));
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
@@ -63,5 +241,11 @@ body {
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
     scroll-behavior: auto !important;
+  }
+
+  ::view-transition-group(*),
+  ::view-transition-old(*),
+  ::view-transition-new(*) {
+    animation: none !important;
   }
 }
