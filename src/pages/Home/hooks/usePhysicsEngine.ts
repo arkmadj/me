@@ -15,8 +15,8 @@ interface PhysicsEngineProps {
   charVelocities: React.RefObject<{ vx: number; vy: number; vr: number }[]>;
   charPositions: React.RefObject<{ x: number; y: number; rotation: number }[]>;
   batPositionRef: React.RefObject<number>;
-  onCharacterHit?: () => void;
-  onCharacterHitBat?: () => void;
+  onCharacterHit?: (index: number) => void;
+  onCharacterHitBat?: (index: number) => void;
   onCharacterHitBottom?: () => void;
 }
 
@@ -157,7 +157,7 @@ export const usePhysicsEngine = ({
         if (!charLanded.current[i]) {
           charLanded.current[i] = true;
           if (onCharacterHitBat) {
-            onCharacterHitBat();
+            onCharacterHitBat(i);
           }
         }
         // Stop character on top of bat
@@ -195,7 +195,7 @@ export const usePhysicsEngine = ({
 
           // Increment score
           if (onCharacterHit) {
-            onCharacterHit();
+            onCharacterHit(i);
           }
 
           // Deflect ball
