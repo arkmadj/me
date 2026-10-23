@@ -5,6 +5,7 @@
   --animate-scan: scan 9s linear infinite;
   --animate-fade-in: fade-in 1.2s ease-out both;
   --animate-pop-in: pop-in 350ms cubic-bezier(0.16, 1, 0.3, 1) both;
+  --animate-score-pop: score-pop 900ms cubic-bezier(0.16, 1, 0.3, 1) both;
 
   @keyframes drift {
     0%,
@@ -33,6 +34,22 @@
     to {
       opacity: 1;
       transform: none;
+    }
+  }
+
+  /* Popups are centred with -translate-1/2, so every frame keeps that offset */
+  @keyframes score-pop {
+    0% {
+      opacity: 0;
+      transform: translate(-50%, -50%) scale(0.6);
+    }
+    15% {
+      opacity: 1;
+      transform: translate(-50%, -70%) scale(1.25);
+    }
+    100% {
+      opacity: 0;
+      transform: translate(-50%, -250%) scale(1);
     }
   }
 
