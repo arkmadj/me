@@ -1,6 +1,7 @@
 import { useRef, useCallback, useEffect } from "react";
 import { getResponsiveValues } from "../constants";
 import type { GameState } from "@/context";
+import { prefersReducedMotion } from "@/hooks/useReveal";
 
 interface UseBatControlsProps {
   batRef: React.RefObject<HTMLDivElement | null>;
@@ -18,6 +19,8 @@ export const useBatControls = ({
   const isTouching = useRef(false);
   const touchStartX = useRef(0);
   const updateBatPositionRef = useRef<(() => void) | null>(null);
+  const isBatHidden = useRef(true);
+  const morphAnimation = useRef<Animation | null>(null);
 
   const updateBatPosition = useCallback(() => {
     if (!batRef.current) return;
@@ -150,15 +153,44 @@ export const useBatControls = ({
     touchStartX.current = 0;
 
     // Update visual position
+    isBatHidden.current = true;
+    morphAnimation.current?.cancel();
     if (batRef.current) {
       batRef.current.style.transform = `translateX(0px) scale(0)`;
     }
   }, [batRef, batPositionRef]);
 
   const showBat = useCallback(() => {
-    if (batRef.current) {
-      batRef.current.style.transform = `translateX(${batPositionRef.current}px) scale(1)`;
-    }
+    const bat = batRef.current;
+    if (!bat) return;
+
+    // Resuming from pause: the bat is already out
+    const wasHidden = isBatHidden.current;
+    isBatHidden.current = false;
+    morphAnimation.current?.cancel();
+    bat.style.transform = `translateX(${batPositionRef.current}px) scale(1)`;
+
+    const pill = document.querySelector("[data-nav-pill]");
+    if (!wasHidden || !pill || prefersReducedMotion()) return;
+
+    // Grow the bat out of the bottom nav pill as it fades away. This animates the
+    // standalone translate/scale properties, so the controls can keep writing transform.
+    const from = pill.getBoundingClientRect();
+    const to = bat.getBoundingClientRect();
+    const dx = from.left + from.width / 2 - (to.left + to.width / 2);
+    const dy = from.bottom - to.bottom; // the bat scales from its bottom edge
+
+    morphAnimation.current = bat.animate(
+      [
+        {
+          translate: `calc(-50% + ${dx}px) ${dy}px`,
+          scale: `${from.width / to.width} ${from.height / to.height}`,
+          opacity: 0.3,
+        },
+        { translate: "-50% 0", scale: "1 1", opacity: 1 },
+      ],
+      { duration: 600, easing: "cubic-bezier(0.34, 1.3, 0.64, 1)" },
+    );
   }, [batRef, batPositionRef]);
 
   return {
