@@ -1,6 +1,7 @@
 import { useRef } from 'react';
 import { Link } from 'react-router-dom';
 import MatrixRain from '@/components/common/MatrixRain';
+import { Backdrop } from '@/components/common/Backdrop';
 import { ROUTES } from '@/routes/paths';
 import { CORE_SKILLS, EDUCATION, GITHUB, PROFILE, SKILL_GROUPS, STATS } from './data';
 import { useReveal } from '@/hooks/useReveal';
@@ -30,6 +31,7 @@ const About = () => {
 
   return (
     <div className='relative z-10 h-full overflow-hidden'>
+      <Backdrop />
       <MatrixRain className='absolute inset-0 z-0 opacity-10' />
 
       <main
@@ -103,6 +105,7 @@ const About = () => {
               </a>
               <Link
                 to={ROUTES.HOME}
+                viewTransition
                 className='group flex items-center gap-2 px-5 py-3 rounded-full border border-blue-500/60 text-blue-300 hover:bg-blue-500 hover:text-black hover:shadow-[0_0_24px_rgba(59,130,246,0.6)] transition-all duration-300'
               >
                 <span className='inline-block w-4 h-2 rounded-full bg-blue-500 group-hover:bg-black transition-colors' />
