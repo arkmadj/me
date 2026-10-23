@@ -87,7 +87,9 @@ const Navigation = () => {
       className={`fixed bottom-0 left-0 right-0 z-50 p-6 ${gameState === 'running' ? 'pointer-events-none' : ''}`}
     >
       {/* Fades with its items so an empty pill isn't left behind during play */}
+      {/* The home paddle grows out of this pill when a game starts */}
       <ul
+        data-nav-pill
         className={cn(
           PILL,
           'mx-auto w-fit gap-1 p-1 max-md:text-xs transition-opacity duration-500',
@@ -103,6 +105,7 @@ const Navigation = () => {
           >
             <Link
               to={item.path}
+              viewTransition={location.pathname !== item.path}
               aria-current={location.pathname === item.path ? 'page' : undefined}
               className={cn(
                 'flex items-center gap-2 px-4 py-1.5 max-md:py-2 transition-colors duration-300',
