@@ -1,6 +1,7 @@
 import { useRef } from 'react';
 import { Link } from 'react-router-dom';
 import MatrixRain from '@/components/common/MatrixRain';
+import { Backdrop } from '@/components/common/Backdrop';
 import { ROUTES } from '@/routes/paths';
 import { useReveal } from '@/hooks/useReveal';
 import { PROJECTS } from './data';
@@ -12,6 +13,7 @@ const Projects = () => {
 
   return (
     <div className='relative z-10 h-full overflow-hidden'>
+      <Backdrop />
       <MatrixRain className='absolute inset-0 z-0 opacity-10' />
 
       <main
@@ -48,6 +50,7 @@ const Projects = () => {
             </a>
             <Link
               to={ROUTES.ABOUT}
+              viewTransition
               className='px-5 py-3 rounded-full border border-green-400/20 text-green-500 hover:border-green-400 hover:text-green-200 transition-all duration-300'
             >
               cd ../about
