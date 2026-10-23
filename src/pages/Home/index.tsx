@@ -12,9 +12,10 @@ import { useBallAnimation } from "./hooks/useBallAnimation";
 import { useBatControls } from "./hooks/useBatControls";
 import { useGameControls } from "./hooks/useGameControls";
 import { AnimatedText } from "./components/AnimatedText";
-import { Backdrop } from "./components/Backdrop";
+import { Backdrop } from "@/components/common/Backdrop";
 import { Ball } from "./components/Ball";
 import { Bat } from "./components/Bat";
+import { ScorePopups, type ScorePopup } from "./components/ScorePopups";
 import { isDeepEqual } from "@/lib/utils";
 import { useSound } from "@/hooks/useSound";
 import { prefersReducedMotion } from "@/hooks/useReveal";
@@ -46,6 +47,8 @@ const Home = () => {
   const [showControlsHint, setShowControlsHint] = useState(false);
   const controlsHintShown = useRef(false);
   const controlsHintTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const [scorePopups, setScorePopups] = useState<ScorePopup[]>([]);
+  const nextPopupId = useRef(0);
   const [isTouchDevice] = useState(
     () => window.matchMedia("(pointer: coarse)").matches,
   );
@@ -73,6 +76,30 @@ const Home = () => {
   // Sound effects
   const { playCharacterHit, playBallMiss, playCharacterLand, playGameOver, playVictory } = useSound({ muted: mutedSound });
 
+  // Show a floating "+N" at the given character's current position
+  const showScorePopup = useCallback(
+    (index: number, points: number, kind: ScorePopup["kind"]) => {
+      const charEl = charRefs.current[index];
+      if (!charEl || !root.current) return;
+      const charRect = charEl.getBoundingClientRect();
+      const rootRect = root.current.getBoundingClientRect();
+      const popup: ScorePopup = {
+        id: nextPopupId.current++,
+        x: charRect.left + charRect.width / 2 - rootRect.left,
+        // Catches float up from the top of the bat rather than the char's centre
+        y: (kind === "catch" ? charRect.top : charRect.top + charRect.height / 2) - rootRect.top,
+        points,
+        kind,
+      };
+      setScorePopups((popups) => [...popups, popup]);
+    },
+    [],
+  );
+
+  const removeScorePopup = useCallback((id: number) => {
+    setScorePopups((popups) => popups.filter((popup) => popup.id !== id));
+  }, []);
+
   // Handler for when ball hits bottom
   const handleBallHitBottom = useCallback(() => {
     playBallMiss();
@@ -81,10 +108,11 @@ const Home = () => {
   }, [decrementLives, setGameState, playBallMiss]);
 
   // Handler for when character is hit
-  const handleCharacterHit = useCallback(() => {
+  const handleCharacterHit = useCallback((index: number) => {
     incrementScore(10);
+    showScorePopup(index, 10, "hit");
     playCharacterHit();
-  }, [incrementScore, playCharacterHit]);
+  }, [incrementScore, playCharacterHit, showScorePopup]);
 
   // Handler for when character hits bat or bottom - checks win condition
   const handleCharacterLanded = useCallback(() => {
@@ -101,11 +129,12 @@ const Home = () => {
   }, [setGameState]);
 
   // Handler for when character hits bat
-  const handleCharacterHitBat = useCallback(() => {
+  const handleCharacterHitBat = useCallback((index: number) => {
     playCharacterLand();
     incrementScore(5);
+    showScorePopup(index, 5, "catch");
     handleCharacterLanded();
-  }, [incrementScore, handleCharacterLanded, playCharacterLand]);
+  }, [incrementScore, handleCharacterLanded, playCharacterLand, showScorePopup]);
 
   // Handler for when character hits bottom
   const handleCharacterHitBottom = useCallback(() => {
@@ -468,6 +497,7 @@ const Home = () => {
       </div>
 
       <Ball ref={ball} />
+      <ScorePopups popups={scorePopups} onDone={removeScorePopup} />
 
       {/* Play hint - shown once the ball is ready to launch */}
       <div
