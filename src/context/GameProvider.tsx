@@ -1,7 +1,7 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import type { ReactNode } from "react";
 import { GameContext } from "./GameContext";
-import type { GameState } from "./GameContext";
+import type { GameState, GameTimer } from "./GameContext";
 
 interface GameProviderProps {
   children: ReactNode;
@@ -9,6 +9,7 @@ interface GameProviderProps {
 
 const INITIAL_LIVES = 3;
 const INITIAL_SCORE = 0;
+const INITIAL_TIMER: GameTimer = { bankedMs: 0, startedAt: null };
 const BEST_SCORE_KEY = "maytricks:best-score";
 
 // Storage can be unavailable (private mode, blocked site data), so fail quietly
@@ -29,7 +30,8 @@ const saveBestScore = (value: number) => {
 };
 
 export const GameProvider = ({ children }: GameProviderProps) => {
-  const [gameState, setGameState] = useState<GameState>('new');
+  const [gameState, setRawGameState] = useState<GameState>('new');
+  const [timer, setTimer] = useState<GameTimer>(INITIAL_TIMER);
   const [mutedSound, setMutedSound] = useState<boolean>(false);
   const [score, setScore] = useState(INITIAL_SCORE);
   const [lives, setLives] = useState(INITIAL_LIVES);
@@ -43,6 +45,21 @@ export const GameProvider = ({ children }: GameProviderProps) => {
       saveBestScore(score);
     }
   }, [gameState, isNewBest, score]);
+
+  // Only time spent with the ball in play counts, so pauses and serves don't run the clock.
+  // Stable identity: Home relies on it inside effects and callbacks.
+  const setGameState = useCallback((next: GameState) => {
+    const now = Date.now();
+    setTimer((prev) => {
+      if (next === "running") {
+        return prev.startedAt === null ? { ...prev, startedAt: now } : prev;
+      }
+      return prev.startedAt === null
+        ? prev
+        : { bankedMs: prev.bankedMs + now - prev.startedAt, startedAt: null };
+    });
+    setRawGameState(next);
+  }, []);
 
   const incrementScore = (points: number) => {
     setScore((prev) => prev + points);
@@ -66,6 +83,7 @@ export const GameProvider = ({ children }: GameProviderProps) => {
     setGameState('new');
     setScore(INITIAL_SCORE);
     setLives(INITIAL_LIVES);
+    setTimer(INITIAL_TIMER);
   };
 
   const toggleSound = () => {
@@ -78,6 +96,7 @@ export const GameProvider = ({ children }: GameProviderProps) => {
     lives,
     bestScore: Math.max(bestScore, score),
     isNewBest,
+    timer,
     mutedSound,
     setGameState,
     incrementScore,
