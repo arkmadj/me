@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import type { ComponentProps, ReactNode } from "react";
 import { useGame } from "@/context";
 import { ROUTES } from "@/routes/paths";
@@ -7,6 +7,7 @@ import {
   HeartFilledIcon,
   HeartIcon,
   PauseIcon,
+  StopwatchIcon,
   SpeakerLoudIcon,
   SpeakerOffIcon,
 } from "@radix-ui/react-icons";
@@ -19,6 +20,34 @@ const MAX_LIVES = 3;
 const LABEL = "text-[10px] uppercase tracking-[0.3em] text-green-500/60";
 
 const padScore = (value: number) => String(value).padStart(4, "0");
+
+const formatDuration = (ms: number) => {
+  const totalSeconds = Math.floor(ms / 1000);
+  const minutes = String(Math.floor(totalSeconds / 60)).padStart(2, "0");
+  const seconds = String(totalSeconds % 60).padStart(2, "0");
+  return `${minutes}:${seconds}`;
+};
+
+// Ticks on its own while the ball is in play, so only this text re-renders each second
+const GameTimer = ({ className }: { className?: string }) => {
+  const { timer } = useGame();
+  const [now, setNow] = useState(() => Date.now());
+
+  useEffect(() => {
+    if (timer.startedAt === null) return;
+    const interval = setInterval(() => setNow(Date.now()), 250);
+    return () => clearInterval(interval);
+  }, [timer.startedAt]);
+
+  const elapsed = timer.bankedMs + (timer.startedAt === null ? 0 : Math.max(0, now - timer.startedAt));
+
+  return (
+    <span className={cn("flex items-center gap-1.5 tabular-nums", className)} aria-label='Game time'>
+      <StopwatchIcon className='size-3.5 shrink-0' />
+      <span className='pt-0.5 leading-none'>{formatDuration(elapsed)}</span>
+    </span>
+  );
+};
 
 const Lives = ({ lives, className }: { lives: number; className?: string }) => (
   <span className='flex gap-0.5 text-green-400' aria-label={`${lives} of ${MAX_LIVES} lives left`}>
@@ -58,7 +87,7 @@ const MenuButton = ({
 const IconButton = ({ className, ...props }: ComponentProps<"button">) => (
   <button
     className={cn(
-      "grid size-9 max-md:size-10 place-items-center rounded-full text-green-400 transition-colors duration-300",
+      "grid size-9 max-md:size-8 place-items-center rounded-full text-green-400 transition-colors duration-300",
       "hover:bg-green-400/10 hover:text-green-300 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-green-400/60",
       className,
     )}
@@ -90,6 +119,7 @@ const MenuScreen = ({ status, title, frame, hint, children }: MenuScreenProps) =
         <header className={cn(LABEL, "flex items-center gap-2 border-b border-green-400/20 bg-green-400/5 px-4 py-2.5")}>
           <span className={GLOW_DOT} />
           {status}
+          <GameTimer className='ml-auto text-green-300' />
         </header>
 
         <div className='flex flex-col items-center gap-6 px-6 py-8 max-md:px-4'>
@@ -180,21 +210,23 @@ const GameOverlay = () => {
     return (
       // Only the controls take pointer events, so touches still reach the paddle
       <main className='absolute inset-0 z-50 p-6 max-md:p-4 pointer-events-none'>
-        <div className='flex items-stretch justify-between gap-3'>
-          <div className={cn(PILL, "gap-3 py-2 max-md:text-xs")}>
-            <Lives lives={lives} className='size-4' />
+        <div className='flex items-stretch justify-between gap-3 max-md:gap-2'>
+          <div className={cn(PILL, "gap-3 py-2 max-md:gap-2 max-md:px-3 max-md:tracking-wider")}>
+            <Lives lives={lives} className='size-4 max-md:size-3.5' />
             <span className='h-4 w-px bg-green-400/30' />
             <span>
               Score <span className='text-green-300 tabular-nums'>{padScore(score)}</span>
             </span>
+            <span className='h-4 w-px bg-green-400/30' />
+            <GameTimer className='text-green-300' />
           </div>
 
           <div className={cn(PILL, "gap-1 p-1 pointer-events-auto")}>
             <IconButton aria-label={mutedSound ? "Unmute sound" : "Mute sound"} onClick={toggleSound}>
-              {mutedSound ? <SpeakerOffIcon className='size-5' /> : <SpeakerLoudIcon className='size-5' />}
+              {mutedSound ? <SpeakerOffIcon className='size-5 max-md:size-4' /> : <SpeakerLoudIcon className='size-5 max-md:size-4' />}
             </IconButton>
             <IconButton aria-label='Pause game' onClick={() => setGameState("paused")}>
-              <PauseIcon className='size-5' />
+              <PauseIcon className='size-5 max-md:size-4' />
             </IconButton>
             {!isTouchDevice && (
               <span className='pr-2'>
