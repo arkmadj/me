@@ -8,12 +8,19 @@ export type GameState =
   | "restart"
   | "won";
 
+// Play time is banked whenever the game leaves "running"; startedAt marks the current run
+export interface GameTimer {
+  bankedMs: number;
+  startedAt: number | null;
+}
+
 export interface GameContextType {
   gameState: GameState;
   score: number;
   lives: number;
   bestScore: number;
   isNewBest: boolean;
+  timer: GameTimer;
   mutedSound: boolean;
   setGameState: (state: GameState) => void;
   incrementScore: (points: number) => void;
