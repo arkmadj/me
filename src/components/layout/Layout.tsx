@@ -41,7 +41,7 @@ const LayoutContent = () => {
   }
 
   return (
-    <div className='h-svh w-full bg-[#0a0f0a] relative overflow-hidden isolate overscroll-none'>
+    <div className='h-svh supports-[height:100dvh]:h-dvh w-full bg-[#0a0f0a] relative overflow-hidden isolate overscroll-none'>
       {/* Background grid */}
       <div
         className='absolute inset-0 z-10 bg-black'

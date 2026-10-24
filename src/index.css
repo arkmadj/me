@@ -69,6 +69,12 @@ body {
   overscroll-behavior: none;
 }
 
+/* In-app browsers (X, Instagram) overlay their toolbar on the page; never let a white canvas show behind it. */
+html {
+  background-color: #0a0f0a;
+  color-scheme: dark;
+}
+
 * {
   user-select: none;
 }
