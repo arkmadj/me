@@ -512,7 +512,7 @@ const Home = () => {
         {isTouchDevice ? (
           "tap or flick the ball to play"
         ) : (
-          <span>
+          <span className='flex items-center gap-1'>
             press <Kbd>space</Kbd> or drag the ball to play
           </span>
         )}
@@ -528,7 +528,7 @@ const Home = () => {
         {isTouchDevice ? (
           "drag anywhere to move the paddle"
         ) : (
-          <span>
+          <span className='flex items-center gap-1'>
             use <Kbd>←</Kbd>
             <Kbd>→</Kbd> to move the paddle
           </span>
