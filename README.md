@@ -5,7 +5,9 @@ A Matrix-themed interactive portfolio website featuring a breakout-style game, b
 ## Features
 
 - 🎮 **Interactive Game**: Breakout-style game on the home page with a custom physics engine, collision detection, lives, pause menu, and Web Audio sound effects
-- 🎨 **Matrix Theme**: Retro green-on-black aesthetic with Matrix rain, HUD frame, and decrypting text effects
+- 🏆 **Scoring**: Points with floating score popups, a play timer that pauses with the game, and a best score saved in `localStorage`
+- 🎨 **Matrix Theme**: Retro green-on-black aesthetic with Matrix rain, HUD frame, CRT backdrop (glow, scanlines, scan beam, vignette), and decrypting text effects
+- 🔀 **Page Transitions**: Route changes animate with the View Transitions API
 - 👤 **About Page**: Terminal-style hero, experience log, and GitHub stats (counters and language breakdown)
 - 🗂️ **Projects Page**: Project cards driven by a simple data file
 - ⚡ **Smooth Animations**: Powered by Anime.js, with support for `prefers-reduced-motion`
@@ -70,10 +72,10 @@ GITHUB_TOKEN=<token> node scripts/github-stats.mjs --lines
 ```
 src/
 ├── components/
-│   ├── common/     # Shared app pieces (navigation, game overlay, HUD, Matrix rain, splash)
+│   ├── common/     # Shared app pieces (navigation, game overlay, HUD, backdrop, Matrix rain, splash)
 │   ├── layout/     # Page layout
 │   └── ui/         # Small UI primitives (Button, Kbd, DecryptText, RotatingText, ...)
-├── context/        # Game state (lives, game state, sound)
+├── context/        # Game state (score, best score, lives, timer, sound)
 ├── hooks/          # Shared hooks (page meta, reveal, rotating text, sound)
 ├── pages/          # Home (game), About, Projects, NotFound
 ├── routes/         # Router configuration and route paths
@@ -93,6 +95,15 @@ seo-plugin.ts       # Vite plugin that injects SEO tags and emits sitemap/robots
 | Pause / resume   | `Space` or `Esc`    | Pause button in the HUD    |
 
 **Objective**: Break every character in the welcome text before you run out of lives (you start with 3).
+
+**Scoring**:
+
+| Event                                   | Points |
+| --------------------------------------- | ------ |
+| Ball hits a character                   | +10    |
+| Catch a falling character on the paddle | +5     |
+
+Your best score is kept between visits.
 
 ## License
 
