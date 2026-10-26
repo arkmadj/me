@@ -105,6 +105,13 @@ seo-plugin.ts       # Vite plugin that injects SEO tags and emits sitemap/robots
 
 Your best score is kept between visits.
 
+**HUD & Menus**:
+
+- While playing, the HUD shows your lives, score, and a play timer, plus buttons to mute sound and pause
+- The timer only runs while the ball is in play, so pausing stops the clock
+- The pause menu lets you resume, restart, or jump to the Projects page
+- Winning or losing shows your score, lives, and best score (flagged when you set a new best), with options to play again or explore my work
+
 ## License
 
 MIT
