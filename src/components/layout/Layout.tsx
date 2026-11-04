@@ -52,7 +52,7 @@ const LayoutContent = () => {
       />
 
       {/* Overlay */}
-      {["paused", "over", "running", "won"].includes(gameState) && <GameOverlay />}
+      {["paused", "over", "running", "restart", "won"].includes(gameState) && <GameOverlay />}
       {/* Main content area - rendered by React Router; the only part that animates between routes */}
       <div className="relative z-10 h-full [view-transition-name:page]">
         <Outlet />

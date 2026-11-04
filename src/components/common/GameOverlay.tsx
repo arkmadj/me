@@ -206,7 +206,7 @@ const GameOverlay = () => {
     );
   }
 
-  if (gameState === "running") {
+  if (gameState === "running" || gameState === "restart") {
     return (
       // Only the controls take pointer events, so touches still reach the paddle
       <main className='absolute inset-0 z-50 p-6 max-md:p-4 pointer-events-none'>
@@ -225,13 +225,18 @@ const GameOverlay = () => {
             <IconButton aria-label={mutedSound ? "Unmute sound" : "Mute sound"} onClick={toggleSound}>
               {mutedSound ? <SpeakerOffIcon className='size-5 max-md:size-4' /> : <SpeakerLoudIcon className='size-5 max-md:size-4' />}
             </IconButton>
-            <IconButton aria-label='Pause game' onClick={() => setGameState("paused")}>
-              <PauseIcon className='size-5 max-md:size-4' />
-            </IconButton>
-            {!isTouchDevice && (
-              <span className='pr-2'>
-                <Kbd>esc</Kbd>
-              </span>
+            {/* Nothing to pause between serves: resuming would start the clock with the ball at rest */}
+            {gameState === "running" && (
+              <>
+                <IconButton aria-label='Pause game' onClick={() => setGameState("paused")}>
+                  <PauseIcon className='size-5 max-md:size-4' />
+                </IconButton>
+                {!isTouchDevice && (
+                  <span className='pr-2'>
+                    <Kbd>esc</Kbd>
+                  </span>
+                )}
+              </>
             )}
           </div>
         </div>
