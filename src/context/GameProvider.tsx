@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import type { ReactNode } from "react";
 import { GameContext } from "./GameContext";
 import type { GameState, GameTimer } from "./GameContext";
@@ -11,6 +11,8 @@ const INITIAL_LIVES = 3;
 const INITIAL_SCORE = 0;
 const INITIAL_TIMER: GameTimer = { bankedMs: 0, startedAt: null };
 const BEST_SCORE_KEY = "maytricks:best-score";
+
+const isGameEnded = (state: GameState) => state === "over" || state === "won";
 
 // Storage can be unavailable (private mode, blocked site data), so fail quietly
 const readBestScore = () => {
@@ -38,6 +40,10 @@ export const GameProvider = ({ children }: GameProviderProps) => {
   // Best score from previous games; the current game is folded in on reset
   const [bestScore, setBestScore] = useState(readBestScore);
   const isNewBest = score > bestScore;
+  // Synchronous copies for the game loop, which can report several events before React commits.
+  // Its callbacks are also bound once on the first render, so they can't read state directly.
+  const gameStateRef = useRef<GameState>("new");
+  const livesRef = useRef(INITIAL_LIVES);
 
   // Persist as soon as a game ends so a reload keeps the new best
   useEffect(() => {
@@ -49,6 +55,10 @@ export const GameProvider = ({ children }: GameProviderProps) => {
   // Only time spent with the ball in play counts, so pauses and serves don't run the clock.
   // Stable identity: Home relies on it inside effects and callbacks.
   const setGameState = useCallback((next: GameState) => {
+    // A finished game only leaves through a reset, so a late event can't undo the result
+    if (isGameEnded(gameStateRef.current) && next !== "new") return;
+    gameStateRef.current = next;
+
     const now = Date.now();
     setTimer((prev) => {
       if (next === "running") {
@@ -65,15 +75,14 @@ export const GameProvider = ({ children }: GameProviderProps) => {
     setScore((prev) => prev + points);
   };
 
-  const decrementLives = () => {
-    setLives((prev) => {
-      const newLives = Math.max(0, prev - 1);
-      if (newLives === 0) {
-        setGameState('over');
-      }
-      return newLives;
-    });
-  };
+  const loseLife = useCallback(() => {
+    if (isGameEnded(gameStateRef.current)) return;
+
+    const remaining = Math.max(0, livesRef.current - 1);
+    livesRef.current = remaining;
+    setLives(remaining);
+    setGameState(remaining === 0 ? "over" : "restart");
+  }, [setGameState]);
 
   const resetGame = () => {
     if (isNewBest) {
@@ -82,6 +91,7 @@ export const GameProvider = ({ children }: GameProviderProps) => {
     }
     setGameState('new');
     setScore(INITIAL_SCORE);
+    livesRef.current = INITIAL_LIVES;
     setLives(INITIAL_LIVES);
     setTimer(INITIAL_TIMER);
   };
@@ -100,7 +110,7 @@ export const GameProvider = ({ children }: GameProviderProps) => {
     mutedSound,
     setGameState,
     incrementScore,
-    decrementLives,
+    loseLife,
     resetGame,
     toggleSound
   };

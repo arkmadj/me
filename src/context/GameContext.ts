@@ -24,7 +24,8 @@ export interface GameContextType {
   mutedSound: boolean;
   setGameState: (state: GameState) => void;
   incrementScore: (points: number) => void;
-  decrementLives: () => void;
+  // Takes a life and moves to "restart", or to "over" on the last one
+  loseLife: () => void;
   resetGame: () => void;
   toggleSound: () => void;
 }
