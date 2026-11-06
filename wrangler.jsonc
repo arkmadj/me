@@ -1,14 +1,21 @@
 {
   "$schema": "node_modules/wrangler/config-schema.json",
   "name": "me",
+  "main": "worker/index.ts",
   "compatibility_date": "2026-06-07",
   "observability": {
     "enabled": true
   },
   "assets": {
-    "not_found_handling": "single-page-application"
+    "not_found_handling": "single-page-application",
+    // Without this the SPA fallback would answer /api/* with index.html
+    "run_worker_first": ["/api/*"]
   },
   "compatibility_flags": [
     "nodejs_compat"
-  ]
+  ],
+  "durable_objects": {
+    "bindings": [{ "name": "LEADERBOARD", "class_name": "Leaderboard" }]
+  },
+  "migrations": [{ "tag": "v1", "new_sqlite_classes": ["Leaderboard"] }]
 }
