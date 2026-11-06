@@ -5,7 +5,7 @@ A Matrix-themed interactive portfolio website featuring a breakout-style game, b
 ## Features
 
 - 🎮 **Interactive Game**: Breakout-style game on the home page with a custom physics engine, collision detection, lives, pause menu, and Web Audio sound effects
-- 🏆 **Scoring**: Points with floating score popups, a play timer that pauses with the game, and a best score saved in `localStorage`
+- 🏆 **Scoring**: Points with floating score popups, a play timer that pauses with the game, a best score saved in `localStorage`, and a global top-10 leaderboard (a Worker at `/api/scores` backed by a SQLite Durable Object)
 - 🎨 **Matrix Theme**: Retro green-on-black aesthetic with Matrix rain, HUD frame, CRT backdrop (glow, scanlines, scan beam, vignette), and decrypting text effects
 - 🔀 **Page Transitions**: Route changes animate with the View Transitions API
 - 👤 **About Page**: Terminal-style hero, experience log, and GitHub stats (counters and language breakdown)
