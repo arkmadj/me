@@ -84,6 +84,36 @@ export const useSound = ({ muted = false }: UseSoundProps = {}) => {
   }, [getAudioContext]);
 
   /**
+   * Play a wall bounce sound effect (top and side walls)
+   */
+  const playWallHit = useCallback(() => {
+    if (mutedRef.current) return;
+
+    const audioContext = getAudioContext();
+    const currentTime = audioContext.currentTime;
+
+    const oscillator = audioContext.createOscillator();
+    const gainNode = audioContext.createGain();
+
+    oscillator.connect(gainNode);
+    gainNode.connect(audioContext.destination);
+
+    // Configure the sound - a soft, low "tock", quieter than the bat since walls come up often
+    oscillator.type = 'sine';
+    oscillator.frequency.setValueAtTime(220, currentTime);
+    oscillator.frequency.exponentialRampToValueAtTime(140, currentTime + 0.05);
+
+    // Volume envelope - very short
+    gainNode.gain.setValueAtTime(0, currentTime);
+    gainNode.gain.linearRampToValueAtTime(0.15, currentTime + 0.005);
+    gainNode.gain.exponentialRampToValueAtTime(0.01, currentTime + 0.07);
+
+    // Play the sound
+    oscillator.start(currentTime);
+    oscillator.stop(currentTime + 0.07);
+  }, [getAudioContext]);
+
+  /**
    * Play a character hit sound effect
    */
   const playCharacterHit = useCallback(() => {
@@ -288,6 +318,7 @@ export const useSound = ({ muted = false }: UseSoundProps = {}) => {
 
   return {
     playBatHit,
+    playWallHit,
     playCharacterHit,
     playBallMiss,
     playCharacterLand,

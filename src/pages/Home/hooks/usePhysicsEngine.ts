@@ -223,7 +223,7 @@ export const usePhysicsEngine = ({
     (
       pos: Position,
       vel: Velocity,
-    ): { newPos: Position; newVel: Velocity; hitBottom: boolean } => {
+    ): { newPos: Position; newVel: Velocity; hitBottom: boolean; hitWall: boolean } => {
       const { ballSize, screenWidth, screenHeight } = getResponsiveValues();
       const boundaries = getBoundaries(screenWidth, screenHeight, ballSize);
 
@@ -232,13 +232,16 @@ export const usePhysicsEngine = ({
       let newVx = vel.vx;
       let newVy = vel.vy;
       let hitBottom = false;
+      let hitWall = false;
 
       if (newX > boundaries.maxX) {
         newX = boundaries.maxX;
         newVx = -Math.abs(newVx);
+        hitWall = true;
       } else if (newX < boundaries.minX) {
         newX = boundaries.minX;
         newVx = Math.abs(newVx);
+        hitWall = true;
       }
 
       if (newY > boundaries.maxY) {
@@ -248,12 +251,14 @@ export const usePhysicsEngine = ({
       } else if (newY < boundaries.minY) {
         newY = boundaries.minY;
         newVy = Math.abs(newVy);
+        hitWall = true;
       }
 
       return {
         newPos: { x: newX, y: newY },
         newVel: { vx: newVx, vy: newVy },
         hitBottom,
+        hitWall,
       };
     },
     [],

@@ -42,7 +42,7 @@ export const useBallAnimation = ({
   onCharacterHitBat,
   onCharacterHitBottom,
 }: UseBallAnimationProps) => {
-  const { playBatHit } = useSound({ muted });
+  const { playBatHit, playWallHit } = useSound({ muted });
 
   const physics = usePhysicsEngine({
     charRefs,
@@ -153,7 +153,7 @@ export const useBallAnimation = ({
       checkCharacterBatCollisions();
 
       // Check boundary collisions
-      const { newPos, newVel: boundaryVel, hitBottom } = checkBoundaryCollisions(
+      const { newPos, newVel: boundaryVel, hitBottom, hitWall } = checkBoundaryCollisions(
         { x: currentX, y: currentY },
         { vx: velocityX, vy: velocityY }
       );
@@ -175,6 +175,11 @@ export const useBallAnimation = ({
           onBallHitBottom();
         }
         return;
+      }
+
+      // Checked after the miss so a corner hit only plays the miss sound
+      if (hitWall) {
+        playWallHit();
       }
 
       // Store current state
@@ -209,6 +214,7 @@ export const useBallAnimation = ({
     gameStateRef,
     onBallHitBottom,
     playBatHit,
+    playWallHit,
   ]);
 
   const calculateLaunchVelocity = useCallback((
