@@ -15,6 +15,7 @@ import { cn } from "@/lib/utils";
 import { GLOW_DOT, KEYCAP, PILL } from "@/components/ui/pill";
 import { Kbd } from "@/components/ui/Kbd";
 import { HudFrame } from "@/components/common/HudFrame";
+import { Leaderboard } from "@/components/common/Leaderboard";
 
 const MAX_LIVES = 3;
 const LABEL = "text-[10px] uppercase tracking-[0.3em] text-green-500/60";
@@ -100,10 +101,12 @@ interface MenuScreenProps {
   title: string;
   frame?: boolean;
   hint?: ReactNode;
+  // Rendered between the stats and the menu buttons
+  extra?: ReactNode;
   children: ReactNode;
 }
 
-const MenuScreen = ({ status, title, frame, hint, children }: MenuScreenProps) => {
+const MenuScreen = ({ status, title, frame, hint, extra, children }: MenuScreenProps) => {
   const { score, lives, bestScore, isNewBest } = useGame();
 
   return (
@@ -111,11 +114,11 @@ const MenuScreen = ({ status, title, frame, hint, children }: MenuScreenProps) =
       role='dialog'
       aria-modal='true'
       aria-labelledby='game-menu-title'
-      className='absolute inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in [animation-duration:300ms]'
+      className='absolute inset-0 z-50 flex justify-center overflow-y-auto p-4 bg-black/60 backdrop-blur-sm animate-fade-in [animation-duration:300ms]'
     >
       {frame && <HudFrame visible />}
 
-      <section className='relative w-full max-w-sm overflow-hidden rounded-2xl border border-green-400/30 bg-black/70 font-mono shadow-[0_0_40px_rgba(34,197,94,0.15)] animate-pop-in'>
+      <section className='relative my-auto w-full max-w-sm overflow-hidden rounded-2xl border border-green-400/30 bg-black/70 font-mono shadow-[0_0_40px_rgba(34,197,94,0.15)] animate-pop-in'>
         <header className={cn(LABEL, "flex items-center gap-2 border-b border-green-400/20 bg-green-400/5 px-4 py-2.5")}>
           <span className={GLOW_DOT} />
           {status}
@@ -149,6 +152,8 @@ const MenuScreen = ({ status, title, frame, hint, children }: MenuScreenProps) =
             </div>
           </dl>
 
+          {extra}
+
           {/* Same glassy track as the bottom navigation */}
           <div className='flex w-full flex-col gap-1 rounded-3xl border border-green-400/30 bg-black/60 p-1 text-xs'>
             {children}
@@ -162,7 +167,7 @@ const MenuScreen = ({ status, title, frame, hint, children }: MenuScreenProps) =
 };
 
 const GameOverlay = () => {
-  const { gameState, score, lives, mutedSound, setGameState, resetGame, toggleSound } = useGame();
+  const { gameState, score, lives, timer, mutedSound, setGameState, resetGame, toggleSound } = useGame();
   const navigate = useNavigate();
   const [isTouchDevice] = useState(() => window.matchMedia("(pointer: coarse)").matches);
 
@@ -174,7 +179,12 @@ const GameOverlay = () => {
   if (gameState === "won" || gameState === "over") {
     const won = gameState === "won";
     return (
-      <MenuScreen status={won ? "exit 0 · all clear" : "exit 1 · out of lives"} title={won ? "You Won!" : "Game Over"}>
+      <MenuScreen
+        status={won ? "exit 0 · all clear" : "exit 1 · out of lives"}
+        title={won ? "You Won!" : "Game Over"}
+        // The clock is stopped once the game ends, so the banked time is the full run
+        extra={<Leaderboard score={score} durationMs={timer.bankedMs} />}
+      >
         <MenuButton primary autoFocus onClick={resetGame}>
           {won ? "Play again" : "Try again"}
         </MenuButton>
