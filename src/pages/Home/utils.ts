@@ -1,5 +1,5 @@
 import { PHYSICS, FRAME_MS, MAX_FRAME_SCALE } from "./constants";
-import type { Velocity, Position } from "./types";
+import type { Velocity, Position, CharRect } from "./types";
 
 // Movement multiplier for a frame: 1 at 60Hz, 0.5 at 120Hz, etc.
 // Returns 1 for the first frame of a loop (no previous timestamp).
@@ -56,7 +56,7 @@ export const calculateDeflection = (
 export const checkCollision = (
   ballPos: Position,
   ballSize: number,
-  charRect: DOMRect,
+  charRect: CharRect,
   screenWidth: number,
   screenHeight: number
 ): boolean => {

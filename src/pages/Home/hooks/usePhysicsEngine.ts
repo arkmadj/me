@@ -1,5 +1,5 @@
-import { useRef, useCallback } from "react";
-import type { Position, Velocity, BallBounds, BatBounds } from "../types";
+import { useRef, useCallback, useEffect } from "react";
+import type { Position, Velocity, BallBounds, BatBounds, CharRect } from "../types";
 import {
   getBoundaries,
   getBatY,
@@ -34,6 +34,59 @@ export const usePhysicsEngine = ({
   const animationFrame = useRef<number | null>(null);
   const ballPosition = useRef<Position>({ x: 0, y: 0 });
   const ballVelocity = useRef<Velocity>({ vx: 0, vy: 0 });
+
+  // Each character's layout box with no transform applied, measured once and
+  // reused every frame. Reading getBoundingClientRect() in the loop right after
+  // writing style.transform forces a synchronous layout per character per frame.
+  const baseRects = useRef<(CharRect | null)[] | null>(null);
+
+  // Viewport changes move the letters, so drop the cache and re-measure lazily
+  useEffect(() => {
+    const invalidate = () => {
+      baseRects.current = null;
+    };
+    window.addEventListener("resize", invalidate);
+    window.addEventListener("scroll", invalidate, { passive: true });
+    return () => {
+      window.removeEventListener("resize", invalidate);
+      window.removeEventListener("scroll", invalidate);
+    };
+  }, []);
+
+  // Measure all characters in one batch (a single layout), subtracting the
+  // translate we applied so the cache holds the untransformed position
+  const measureBaseRects = useCallback(() => {
+    baseRects.current = charRefs.current.map((charEl, i) => {
+      if (!charEl) return null;
+      const rect = charEl.getBoundingClientRect();
+      const pos = charPositions.current[i] ?? { x: 0, y: 0 };
+      return {
+        left: rect.left - pos.x,
+        top: rect.top - pos.y,
+        width: rect.width,
+        height: rect.height,
+      };
+    });
+  }, [charRefs, charPositions]);
+
+  // Current box of a character: cached base box offset by its tracked position
+  const getCharRect = useCallback(
+    (i: number): CharRect | null => {
+      if (!baseRects.current || baseRects.current.length !== charRefs.current.length) {
+        measureBaseRects();
+      }
+      const base = baseRects.current?.[i];
+      if (!base) return null;
+      const pos = charPositions.current[i];
+      return {
+        left: base.left + pos.x,
+        top: base.top + pos.y,
+        width: base.width,
+        height: base.height,
+      };
+    },
+    [charRefs, charPositions, measureBaseRects],
+  );
 
   const updateCharacterPhysics = useCallback((frameScale = 1) => {
     const { screenHeight } = getResponsiveValues();
@@ -130,7 +183,8 @@ export const usePhysicsEngine = ({
       if (!charEl || !charHit.current[i] || charVelocities.current[i].vy <= 0)
         return;
 
-      const charRect = charEl.getBoundingClientRect();
+      const charRect = getCharRect(i);
+      if (!charRect) return;
       const { screenWidth } = getResponsiveValues();
       const screenCenterX = screenWidth / 2;
       const screenCenterY = screenHeight / 2;
@@ -168,7 +222,7 @@ export const usePhysicsEngine = ({
         charEl.style.transform = `translate(${charPositions.current[i].x}px, ${charPositions.current[i].y}px)`;
       }
     });
-  }, [batPositionRef, charRefs, charHit, charLanded, charVelocities, charPositions, onCharacterHitBat]);
+  }, [batPositionRef, charRefs, charHit, charLanded, charVelocities, charPositions, getCharRect, onCharacterHitBat]);
 
   const checkCharacterCollisions = useCallback(
     (currentPos: Position, currentVel: Velocity): Velocity => {
@@ -178,7 +232,8 @@ export const usePhysicsEngine = ({
       charRefs.current.forEach((charEl, i) => {
         if (!charEl || charHit.current[i]) return;
 
-        const charRect = charEl.getBoundingClientRect();
+        const charRect = getCharRect(i);
+        if (!charRect) return;
 
         if (
           checkCollision(
@@ -216,7 +271,7 @@ export const usePhysicsEngine = ({
 
       return newVel;
     },
-    [charRefs, charHit, charVelocities, onCharacterHit],
+    [charRefs, charHit, charVelocities, getCharRect, onCharacterHit],
   );
 
   const checkBoundaryCollisions = useCallback(

@@ -31,3 +31,11 @@ export interface BatBounds {
   top: number;
   bottom: number;
 }
+
+// Viewport-relative box of a character (subset of DOMRect)
+export interface CharRect {
+  left: number;
+  top: number;
+  width: number;
+  height: number;
+}
