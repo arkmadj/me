@@ -16,11 +16,19 @@ export const ANIMATION_TIMINGS = {
 // Physics constants
 export const PHYSICS = {
   VELOCITY_MULTIPLIER: 1.5,
-  MAX_SPEED: 8,
-  MIN_SPEED: 6,
+  MAX_SPEED: 9.5,
+  MIN_SPEED: 7,
   GRAVITY: 0.001,
   BAT_ANGLE_FACTOR: 2,
 } as const;
+
+// Velocities above are tuned in px per 60Hz frame. Movement is scaled by
+// elapsed time relative to this so speed is the same at any refresh rate.
+export const FRAME_MS = 1000 / 60;
+// Cap a single step (e.g. after a dropped frame or a backgrounded tab) so the
+// ball can't jump far enough to skip collisions. 3 frames * MAX_SPEED (28.5px)
+// stays below the ball size.
+export const MAX_FRAME_SCALE = 3;
 
 // Responsive sizing
 export const getResponsiveValues = () => {
@@ -31,7 +39,7 @@ export const getResponsiveValues = () => {
     ballSize: isMobile ? 32 : 40,
     batWidth: isMobile ? 80 : window.innerWidth / 6,
     batHeight: 24, // h-6 = 1.5rem = 24px
-    moveSpeed: isMobile ? 5 : 7,
+    moveSpeed: isMobile ? 6 : 8.5,
     maxSpeed: isLargeScreen ? 8 : 8,
     screenWidth: window.innerWidth,
     screenHeight: window.innerHeight,

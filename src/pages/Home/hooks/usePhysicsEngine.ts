@@ -35,17 +35,17 @@ export const usePhysicsEngine = ({
   const ballPosition = useRef<Position>({ x: 0, y: 0 });
   const ballVelocity = useRef<Velocity>({ vx: 0, vy: 0 });
 
-  const updateCharacterPhysics = useCallback(() => {
+  const updateCharacterPhysics = useCallback((frameScale = 1) => {
     const { screenHeight } = getResponsiveValues();
 
     charRefs.current.forEach((charEl, i) => {
       if (!charEl || charVelocities.current[i].vy <= 0) return;
 
       // Apply gravity
-      charVelocities.current[i].vy += PHYSICS.GRAVITY;
+      charVelocities.current[i].vy += PHYSICS.GRAVITY * frameScale;
 
       // Update position
-      charPositions.current[i].y += charVelocities.current[i].vy;
+      charPositions.current[i].y += charVelocities.current[i].vy * frameScale;
 
       // Check if hit the ground
       const charMaxY = screenHeight;

@@ -3,7 +3,7 @@ import { useCallback } from "react";
 import { createDraggable } from "animejs";
 import type { Velocity, Position } from "../types";
 import { getResponsiveValues, getBatY, PHYSICS } from "../constants";
-import { clampVelocity } from "../utils";
+import { clampVelocity, getFrameScale } from "../utils";
 import { usePhysicsEngine } from "./usePhysicsEngine";
 import { useSound } from "@/hooks/useSound";
 
@@ -81,11 +81,17 @@ export const useBallAnimation = ({
     const batHeight = 24;
     const batY = getBatY(screenHeight, batHeight);
 
-    const animateBounce = () => {
+    // Timestamp of the last simulated frame, for scaling movement by elapsed time
+    let lastTime: number | null = null;
+
+    const animateBounce = (now: number) => {
       // Check if game is paused, won, or over
       if (gameStateRef.current === "paused" || gameStateRef.current === "won" || gameStateRef.current === "over") {
         ballPositionRef.current = { x: currentX, y: currentY };
         ballVelocityRef.current = { vx: velocityX, vy: velocityY };
+
+        // Don't count paused time as elapsed when resuming
+        lastTime = null;
 
         // Stop animation if game is won or over
         if (gameStateRef.current === "won" || gameStateRef.current === "over") {
@@ -101,9 +107,12 @@ export const useBallAnimation = ({
         return;
       }
 
+      const frameScale = getFrameScale(now, lastTime);
+      lastTime = now;
+
       // Update position
-      currentX += velocityX;
-      currentY += velocityY;
+      currentX += velocityX * frameScale;
+      currentY += velocityY * frameScale;
 
       // Calculate ball bounds
       const ballBounds = {
@@ -147,7 +156,7 @@ export const useBallAnimation = ({
       velocityY = charCollisionVel.vy;
 
       // Update character physics
-      updateCharacterPhysics();
+      updateCharacterPhysics(frameScale);
 
       // Check character-bat collisions
       checkCharacterBatCollisions();

@@ -1,5 +1,6 @@
 import { useRef, useCallback, useEffect } from "react";
 import { getResponsiveValues } from "../constants";
+import { getFrameScale } from "../utils";
 import type { GameState } from "@/context";
 import { prefersReducedMotion } from "@/hooks/useReveal";
 
@@ -18,24 +19,28 @@ export const useBatControls = ({
   const batAnimationFrame = useRef<number | null>(null);
   const isTouching = useRef(false);
   const touchStartX = useRef(0);
-  const updateBatPositionRef = useRef<(() => void) | null>(null);
+  const updateBatPositionRef = useRef<((now: number) => void) | null>(null);
+  const lastBatFrameTime = useRef<number | null>(null);
   const isBatHidden = useRef(true);
   const morphAnimation = useRef<Animation | null>(null);
 
-  const updateBatPosition = useCallback(() => {
+  const updateBatPosition = useCallback((now: number) => {
     if (!batRef.current) return;
 
     // Don't update bat if game is not running
     if (gameStateRef.current !== "running") {
+      lastBatFrameTime.current = null;
       if (keysPressed.current.size > 0) {
-        batAnimationFrame.current = requestAnimationFrame(() => updateBatPositionRef.current?.());
+        batAnimationFrame.current = requestAnimationFrame((t) => updateBatPositionRef.current?.(t));
       } else {
         batAnimationFrame.current = null;
       }
       return;
     }
 
-    const { moveSpeed, batWidth, screenWidth } = getResponsiveValues();
+    const { moveSpeed: baseMoveSpeed, batWidth, screenWidth } = getResponsiveValues();
+    const moveSpeed = baseMoveSpeed * getFrameScale(now, lastBatFrameTime.current);
+    lastBatFrameTime.current = now;
     const maxPosition = screenWidth / 2 - batWidth / 2;
     const minPosition = -screenWidth / 2 + batWidth / 2;
 
@@ -64,9 +69,10 @@ export const useBatControls = ({
 
     // Continue animation loop
     if (keysPressed.current.size > 0) {
-      batAnimationFrame.current = requestAnimationFrame(() => updateBatPositionRef.current?.());
+      batAnimationFrame.current = requestAnimationFrame((t) => updateBatPositionRef.current?.(t));
     } else {
       batAnimationFrame.current = null;
+      lastBatFrameTime.current = null;
     }
   }, [batRef, batPositionRef, gameStateRef]);
 
@@ -83,7 +89,7 @@ export const useBatControls = ({
         keysPressed.current.add(e.key);
 
         if (wasEmpty && !batAnimationFrame.current) {
-          batAnimationFrame.current = requestAnimationFrame(() => updateBatPositionRef.current?.());
+          batAnimationFrame.current = requestAnimationFrame((t) => updateBatPositionRef.current?.(t));
         }
       }
     },
@@ -144,6 +150,7 @@ export const useBatControls = ({
       cancelAnimationFrame(batAnimationFrame.current);
       batAnimationFrame.current = null;
     }
+    lastBatFrameTime.current = null;
 
     // Reset bat position to center
     batPositionRef.current = 0;

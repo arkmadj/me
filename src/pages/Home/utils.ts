@@ -1,5 +1,12 @@
-import { PHYSICS } from "./constants";
+import { PHYSICS, FRAME_MS, MAX_FRAME_SCALE } from "./constants";
 import type { Velocity, Position } from "./types";
+
+// Movement multiplier for a frame: 1 at 60Hz, 0.5 at 120Hz, etc.
+// Returns 1 for the first frame of a loop (no previous timestamp).
+export const getFrameScale = (now: number, last: number | null): number => {
+  if (last === null) return 1;
+  return Math.min(Math.max((now - last) / FRAME_MS, 0), MAX_FRAME_SCALE);
+};
 
 // Clamp velocity to max and min speed
 export const clampVelocity = (
