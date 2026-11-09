@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import type { FormEvent } from "react";
-import { NAME_MAX_LENGTH, normalizeName } from "@shared/leaderboard";
+import { NAME_MAX_LENGTH, isBlockedName, normalizeName } from "@shared/leaderboard";
 import {
   fetchLeaderboard,
   qualifies,
@@ -58,6 +58,10 @@ export const Leaderboard = ({ score, durationMs }: LeaderboardProps) => {
     event.preventDefault();
     const clean = normalizeName(name);
     if (!clean) return;
+    if (isBlockedName(clean)) {
+      setStatus({ kind: "error", message: "Please pick a different name" });
+      return;
+    }
     savePlayerName(clean);
     setStatus({ kind: "submitting" });
     try {
