@@ -94,11 +94,15 @@ export class Leaderboard extends DurableObject<Env> {
       LEADERBOARD_SIZE,
     );
 
+    // One bounded read yields both the new entry's rank and the board to return
     const ranked = sql
-      .exec<{ id: number }>("SELECT id FROM scores ORDER BY score DESC, duration_ms ASC, created_at ASC")
+      .exec<EntryRow & { id: number }>(
+        "SELECT id, name, score, duration_ms, created_at FROM scores ORDER BY score DESC, duration_ms ASC, created_at ASC LIMIT ?",
+        LEADERBOARD_SIZE,
+      )
       .toArray();
     const index = ranked.findIndex((row) => row.id === id);
-    return { rank: index === -1 ? null : index + 1, entries: this.top() };
+    return { rank: index === -1 ? null : index + 1, entries: ranked.map(toEntry) };
   }
 }
 
