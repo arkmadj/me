@@ -31,20 +31,44 @@ export const FRAME_MS = 1000 / 60;
 export const MAX_FRAME_SCALE = 3;
 
 // Responsive sizing
-export const getResponsiveValues = () => {
-  const isMobile = window.innerWidth < 768;
-  const isLargeScreen = window.innerWidth > 1920;
+export type ResponsiveValues = Readonly<{
+  ballSize: number;
+  batWidth: number;
+  batHeight: number;
+  moveSpeed: number;
+  maxSpeed: number;
+  screenWidth: number;
+  screenHeight: number;
+}>;
 
-  return {
+const computeResponsiveValues = (): ResponsiveValues => {
+  const width = window.innerWidth;
+  const isMobile = width < 768;
+  const isLargeScreen = width > 1920;
+
+  return Object.freeze({
     ballSize: isMobile ? 32 : 40,
-    batWidth: isMobile ? 80 : window.innerWidth / 6,
+    batWidth: isMobile ? 80 : width / 6,
     batHeight: 24, // h-6 = 1.5rem = 24px
     moveSpeed: isMobile ? 6 : 8.5,
     maxSpeed: isLargeScreen ? 8 : 8,
-    screenWidth: window.innerWidth,
+    screenWidth: width,
     screenHeight: window.innerHeight,
-  };
+  });
 };
+
+// Called several times per animation frame, so cache the result and only
+// recompute when the viewport changes instead of re-reading window each call.
+let responsiveValues: ResponsiveValues | null = null;
+
+if (typeof window !== "undefined") {
+  window.addEventListener("resize", () => {
+    responsiveValues = null;
+  });
+}
+
+export const getResponsiveValues = (): ResponsiveValues =>
+  (responsiveValues ??= computeResponsiveValues());
 
 // Calculate boundaries
 export const getBoundaries = (screenWidth: number, screenHeight: number, ballSize: number) => ({
