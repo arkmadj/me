@@ -134,8 +134,8 @@ export const usePhysicsEngine = ({
         ballBounds.left <= batBounds.right &&
         currentVel.vy > 0
       ) {
-        const { batWidth, ballSize, screenHeight } = getResponsiveValues();
-        const batY = getBatY(screenHeight, 24);
+        const { batWidth, batHeight, ballSize, screenHeight } = getResponsiveValues();
+        const batY = getBatY(screenHeight, batHeight);
 
         // Position ball just above bat
         const newY = batY - ballSize / 2;
@@ -165,8 +165,7 @@ export const usePhysicsEngine = ({
   );
 
   const checkCharacterBatCollisions = useCallback(() => {
-    const { batWidth, screenWidth, screenHeight } = getResponsiveValues();
-    const batHeight = 24;
+    const { batWidth, batHeight, screenWidth, screenHeight } = getResponsiveValues();
     const screenCenterX = screenWidth / 2;
     const screenCenterY = screenHeight / 2;
     const batY = getBatY(screenHeight, batHeight);

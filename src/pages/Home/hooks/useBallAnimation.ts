@@ -80,8 +80,7 @@ export const useBallAnimation = ({
     let velocityX = initialVel.vx;
     let velocityY = initialVel.vy;
 
-    const { ballSize, batWidth, screenHeight } = getResponsiveValues();
-    const batHeight = 24;
+    const { ballSize, batWidth, batHeight, screenHeight } = getResponsiveValues();
     const batY = getBatY(screenHeight, batHeight);
 
     // Timestamp of the last simulated frame, for scaling movement by elapsed time

@@ -36,7 +36,6 @@ export type ResponsiveValues = Readonly<{
   batWidth: number;
   batHeight: number;
   moveSpeed: number;
-  maxSpeed: number;
   screenWidth: number;
   screenHeight: number;
 }>;
@@ -44,14 +43,12 @@ export type ResponsiveValues = Readonly<{
 const computeResponsiveValues = (): ResponsiveValues => {
   const width = window.innerWidth;
   const isMobile = width < 768;
-  const isLargeScreen = width > 1920;
 
   return Object.freeze({
     ballSize: isMobile ? 32 : 40,
     batWidth: isMobile ? 80 : width / 6,
     batHeight: 24, // h-6 = 1.5rem = 24px
     moveSpeed: isMobile ? 6 : 8.5,
-    maxSpeed: isLargeScreen ? 8 : 8,
     screenWidth: width,
     screenHeight: window.innerHeight,
   });
@@ -78,6 +75,9 @@ export const getBoundaries = (screenWidth: number, screenHeight: number, ballSiz
   minY: -screenHeight / 2 + ballSize / 2,
 });
 
+// Gap between the bat and the bottom of the screen (bottom-6 = 1.5rem = 24px)
+export const BAT_BOTTOM_OFFSET = 24;
+
 // Calculate bat Y position
-export const getBatY = (screenHeight: number, batHeight: number) => 
-  screenHeight / 2 - 24 - batHeight / 2; // bottom-6 = 1.5rem = 24px from bottom
+export const getBatY = (screenHeight: number, batHeight: number) =>
+  screenHeight / 2 - BAT_BOTTOM_OFFSET - batHeight / 2;
