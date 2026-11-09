@@ -1,5 +1,5 @@
 "use no memo";
-import { useCallback } from "react";
+import { useCallback, useRef } from "react";
 import { createDraggable } from "animejs";
 import type { Velocity, Position } from "../types";
 import { getResponsiveValues, getBatY, PHYSICS } from "../constants";
@@ -68,6 +68,9 @@ export const useBallAnimation = ({
     checkBoundaryCollisions,
   } = physics;
 
+  // True while the loop is stopped by a pause and should continue on resume
+  const suspendedRef = useRef(false);
+
   const animateBall = useCallback((
     initialPos: Position,
     initialVel: Velocity
@@ -90,20 +93,9 @@ export const useBallAnimation = ({
         ballPositionRef.current = { x: currentX, y: currentY };
         ballVelocityRef.current = { vx: velocityX, vy: velocityY };
 
-        // Don't count paused time as elapsed when resuming
-        lastTime = null;
-
-        // Stop animation if game is won or over
-        if (gameStateRef.current === "won" || gameStateRef.current === "over") {
-          if (animationFrameRef.current) {
-            cancelAnimationFrame(animationFrameRef.current);
-            animationFrameRef.current = null;
-          }
-          return;
-        }
-
-        // Continue animation loop if only paused (so it can resume)
-        animationFrameRef.current = requestAnimationFrame(animateBounce);
+        // Stop the loop; resumeBall restarts it from the saved state
+        animationFrameRef.current = null;
+        suspendedRef.current = gameStateRef.current === "paused";
         return;
       }
 
@@ -206,7 +198,11 @@ export const useBallAnimation = ({
       animationFrameRef.current = requestAnimationFrame(animateBounce);
     };
 
-    // Start animation
+    // Start animation (cancelling any loop already in flight)
+    if (animationFrameRef.current) {
+      cancelAnimationFrame(animationFrameRef.current);
+    }
+    suspendedRef.current = false;
     animationFrameRef.current = requestAnimationFrame(animateBounce);
   }, [
     animationFrameRef,
@@ -226,6 +222,12 @@ export const useBallAnimation = ({
     playWallHit,
   ]);
 
+  // Restart a loop that was stopped by a pause, from where the ball left off
+  const resumeBall = useCallback(() => {
+    if (!suspendedRef.current) return;
+    animateBall(ballPositionRef.current, ballVelocityRef.current);
+  }, [animateBall, ballPositionRef, ballVelocityRef]);
+
   const calculateLaunchVelocity = useCallback((
     dragStart: Position,
     dragEnd: Position
@@ -241,6 +243,8 @@ export const useBallAnimation = ({
   }, []);
 
   const resetBallAnimation = () => {
+    suspendedRef.current = false;
+
     // Cancel any ongoing animation
     if (animationFrameRef.current) {
       cancelAnimationFrame(animationFrameRef.current);
@@ -270,6 +274,7 @@ export const useBallAnimation = ({
 
   return {
     animateBall,
+    resumeBall,
     calculateLaunchVelocity,
     resetBallAnimation,
     animationFrame: animationFrameRef,

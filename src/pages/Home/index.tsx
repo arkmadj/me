@@ -244,6 +244,14 @@ const Home = () => {
     }
   }, [gameState, batControls, ballAnimation]);
 
+  // Restart the ball loop when resuming from pause (no-op on a fresh launch)
+  const { resumeBall } = ballAnimation;
+  useEffect(() => {
+    if (gameState === "running") {
+      resumeBall();
+    }
+  }, [gameState, resumeBall]);
+
   // Show bat when game starts
   useEffect(() => {
     if (gameState === "running") {
