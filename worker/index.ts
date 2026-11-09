@@ -1,6 +1,8 @@
 import { DurableObject } from "cloudflare:workers";
 import { LEADERBOARD_SIZE, validateSubmission } from "../shared/leaderboard";
 import type { LeaderboardEntry, ScoreSubmission, SubmitResult } from "../shared/leaderboard";
+import { SESSION_TTL_MS, issueSession, verifySession } from "./session";
+import type { Session } from "./session";
 
 // One submission per client per window keeps casual spamming off the board
 const RATE_LIMIT_MS = 10_000;
@@ -32,6 +34,10 @@ export class Leaderboard extends DurableObject<Env> {
           client TEXT PRIMARY KEY,
           last_at INTEGER NOT NULL
         );
+        CREATE TABLE IF NOT EXISTS used_sessions (
+          nonce TEXT PRIMARY KEY,
+          issued_at INTEGER NOT NULL
+        );
       `);
     });
   }
@@ -46,16 +52,23 @@ export class Leaderboard extends DurableObject<Env> {
       .map(toEntry);
   }
 
-  submit(client: string, entry: ScoreSubmission): SubmitResult | { error: string } {
+  submit(client: string, session: Session, entry: ScoreSubmission): SubmitResult | { error: string; status: number } {
     const now = Date.now();
-    const last = this.ctx.storage.sql
+    const sql = this.ctx.storage.sql;
+    const last = sql
       .exec<{ last_at: number }>("SELECT last_at FROM submitters WHERE client = ?", client)
       .toArray()[0];
     if (last && now - last.last_at < RATE_LIMIT_MS) {
-      return { error: "Too many submissions, try again shortly" };
+      return { error: "Too many submissions, try again shortly", status: 429 };
     }
 
-    const sql = this.ctx.storage.sql;
+    // Each game session backs one submission, so a token can't be replayed for more entries
+    const used = sql.exec("SELECT 1 FROM used_sessions WHERE nonce = ?", session.nonce).toArray().length > 0;
+    if (used) return { error: "This run was already submitted", status: 409 };
+    sql.exec("INSERT INTO used_sessions (nonce, issued_at) VALUES (?, ?)", session.nonce, session.issuedAt);
+    // Expired tokens fail verification anyway, so their nonces no longer need tracking
+    sql.exec("DELETE FROM used_sessions WHERE issued_at < ?", now - SESSION_TTL_MS);
+
     sql.exec(
       "INSERT INTO submitters (client, last_at) VALUES (?, ?) ON CONFLICT (client) DO UPDATE SET last_at = excluded.last_at",
       client,
@@ -96,6 +109,13 @@ export default {
   async fetch(request, env) {
     const url = new URL(request.url);
     // Only /api/* reaches the Worker (see run_worker_first); assets handle everything else
+    // Without a secret no run could be verified, so fail loudly rather than accept unsigned scores
+    if (!env.SESSION_SECRET) return json({ error: "Leaderboard not configured" }, 503);
+
+    if (url.pathname === "/api/sessions") {
+      if (request.method !== "POST") return json({ error: "Method not allowed" }, 405);
+      return json({ token: await issueSession(env.SESSION_SECRET) });
+    }
     if (url.pathname !== "/api/scores") return json({ error: "Not found" }, 404);
 
     const board = env.LEADERBOARD.getByName("global");
@@ -114,9 +134,12 @@ export default {
       const result = validateSubmission(body);
       if (typeof result === "string") return json({ error: result }, 400);
 
+      const session = await verifySession(env.SESSION_SECRET, (body as { session?: unknown }).session, result.durationMs);
+      if (typeof session === "string") return json({ error: session }, 403);
+
       const client = request.headers.get("CF-Connecting-IP") ?? "local";
-      const outcome = await board.submit(client, result);
-      return "error" in outcome ? json(outcome, 429) : json(outcome);
+      const outcome = await board.submit(client, session, result);
+      return "error" in outcome ? json({ error: outcome.error }, outcome.status) : json(outcome);
     }
 
     return json({ error: "Method not allowed" }, 405);

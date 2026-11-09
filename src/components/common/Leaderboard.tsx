@@ -11,6 +11,7 @@ import {
 import type { LeaderboardEntry } from "@/lib/leaderboard";
 import { cn } from "@/lib/utils";
 import { KEYCAP } from "@/components/ui/pill";
+import { useGame } from "@/context";
 
 const LABEL = "text-[10px] uppercase tracking-[0.3em] text-green-500/60";
 
@@ -27,6 +28,7 @@ interface LeaderboardProps {
 
 // Global top scores, with a name entry when the finished run makes the board
 export const Leaderboard = ({ score, durationMs }: LeaderboardProps) => {
+  const { getSessionToken } = useGame();
   const [entries, setEntries] = useState<LeaderboardEntry[]>([]);
   const [status, setStatus] = useState<Status>({ kind: "loading" });
   const [name, setName] = useState(readPlayerName);
@@ -59,7 +61,9 @@ export const Leaderboard = ({ score, durationMs }: LeaderboardProps) => {
     savePlayerName(clean);
     setStatus({ kind: "submitting" });
     try {
-      const result = await submitScore({ name: clean, score, durationMs });
+      const session = await getSessionToken();
+      if (!session) throw new Error("Couldn't verify this run with the server");
+      const result = await submitScore({ name: clean, score, durationMs }, session);
       setEntries(result.entries);
       setRank(result.rank);
       setSubmitted(true);

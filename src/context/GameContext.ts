@@ -28,6 +28,8 @@ export interface GameContextType {
   loseLife: () => void;
   resetGame: () => void;
   toggleSound: () => void;
+  // The leaderboard token for the current game; null if it couldn't be fetched
+  getSessionToken: () => Promise<string | null>;
 }
 
 export const GameContext = createContext<GameContextType | undefined>(

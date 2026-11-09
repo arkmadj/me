@@ -1,0 +1,3 @@
+# Signs game-session tokens. Any long random string; set in production with:
+#   npx wrangler secret put SESSION_SECRET
+SESSION_SECRET=replace-with-a-long-random-string

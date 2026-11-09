@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import type { ReactNode } from "react";
 import { GameContext } from "./GameContext";
 import type { GameState, GameTimer } from "./GameContext";
+import { startSession } from "@/lib/leaderboard";
 
 interface GameProviderProps {
   children: ReactNode;
@@ -44,6 +45,8 @@ export const GameProvider = ({ children }: GameProviderProps) => {
   // Its callbacks are also bound once on the first render, so they can't read state directly.
   const gameStateRef = useRef<GameState>("new");
   const livesRef = useRef(INITIAL_LIVES);
+  // Requested as the ball first goes into play, so the server's clock starts with the game
+  const sessionRef = useRef<Promise<string | null> | null>(null);
 
   // Persist as soon as a game ends so a reload keeps the new best
   useEffect(() => {
@@ -58,6 +61,9 @@ export const GameProvider = ({ children }: GameProviderProps) => {
     // A finished game only leaves through a reset, so a late event can't undo the result
     if (isGameEnded(gameStateRef.current) && next !== "new") return;
     gameStateRef.current = next;
+    if (next === "running" && !sessionRef.current) {
+      sessionRef.current = startSession().catch(() => null);
+    }
 
     const now = Date.now();
     setTimer((prev) => {
@@ -94,11 +100,14 @@ export const GameProvider = ({ children }: GameProviderProps) => {
     livesRef.current = INITIAL_LIVES;
     setLives(INITIAL_LIVES);
     setTimer(INITIAL_TIMER);
+    sessionRef.current = null;
   };
 
   const toggleSound = () => {
     setMutedSound((prev) => !prev)
   }
+
+  const getSessionToken = () => sessionRef.current ?? Promise.resolve(null);
 
   const value = {
     gameState,
@@ -112,7 +121,8 @@ export const GameProvider = ({ children }: GameProviderProps) => {
     incrementScore,
     loseLife,
     resetGame,
-    toggleSound
+    toggleSound,
+    getSessionToken,
   };
 
   return <GameContext.Provider value={value}>{children}</GameContext.Provider>;
