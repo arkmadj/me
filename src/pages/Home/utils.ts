@@ -11,8 +11,8 @@ export const getFrameScale = (now: number, last: number | null): number => {
 // Clamp velocity to max and min speed
 export const clampVelocity = (
   velocity: Velocity,
-  maxSpeed = PHYSICS.MAX_SPEED,
-  minSpeed = PHYSICS.MIN_SPEED
+  maxSpeed: number = PHYSICS.MAX_SPEED,
+  minSpeed: number = PHYSICS.MIN_SPEED
 ): Velocity => {
   const currentSpeed = Math.sqrt(
     velocity.vx * velocity.vx + velocity.vy * velocity.vy
