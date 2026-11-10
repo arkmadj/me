@@ -67,6 +67,17 @@ node scripts/github-stats.mjs
 GITHUB_TOKEN=<token> node scripts/github-stats.mjs --lines
 ```
 
+### CI & Deployment
+
+[`.github/workflows/ci.yml`](.github/workflows/ci.yml) runs lint, build (with typecheck) and tests on every pull request and push to `main`.
+
+Deploying to Cloudflare on `main` is opt-in. To enable it, in the repo's GitHub settings:
+
+1. Add the secrets `CLOUDFLARE_API_TOKEN` (with the "Edit Cloudflare Workers" template) and `CLOUDFLARE_ACCOUNT_ID`.
+2. Add the repository variable `DEPLOY_ENABLED=true`.
+
+`SESSION_SECRET` is a Worker secret, not a CI secret. Set it once with `npx wrangler secret put SESSION_SECRET`.
+
 ## Project Structure
 
 ```
