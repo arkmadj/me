@@ -91,8 +91,7 @@ src/
 ├── pages/          # Home (game), About, Projects, NotFound
 ├── routes/         # Router configuration and route paths
 ├── lib/            # Utility functions
-├── seo.ts          # Site and per-page SEO metadata
-└── assets/         # Static assets
+└── seo.ts          # Site and per-page SEO metadata
 scripts/            # Maintenance scripts (GitHub stats snapshot)
 seo-plugin.ts       # Vite plugin that injects SEO tags and emits sitemap/robots
 ```
