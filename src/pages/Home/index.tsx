@@ -1,4 +1,5 @@
 import { useEffect, useRef, useCallback, useState } from "react";
+import { Link } from "react-router-dom";
 import {
   animate,
   createScope,
@@ -7,7 +8,7 @@ import {
   scrambleText,
 } from "animejs";
 import { useGame } from "@/context";
-import { WELCOME_TEXT, INTRO_TEXT, ANIMATION_TIMINGS } from "./constants";
+import { WELCOME_TEXT, WELCOME_LABEL, INTRO_TEXT, ANIMATION_TIMINGS } from "./constants";
 import { useBallAnimation } from "./hooks/useBallAnimation";
 import { useBatControls } from "./hooks/useBatControls";
 import { useGameControls } from "./hooks/useGameControls";
@@ -24,6 +25,8 @@ import { RotatingText } from "@/components/ui/RotatingText";
 import { GLOW_DOT, PILL } from "@/components/ui/pill";
 import { Kbd } from "@/components/ui/Kbd";
 import { HudFrame } from "@/components/common/HudFrame";
+import { ROUTES } from "@/routes/paths";
+import { cn } from "@/lib/utils";
 
 const HINT_PILL = `${PILL} absolute left-1/2 -translate-x-1/2 transition-opacity duration-700`;
 
@@ -482,6 +485,11 @@ const Home = () => {
           className={`font-mono text-xl max-md:text-base mb-2 transition-colors duration-300 drop-shadow-[0_0_8px_rgba(34,197,94,0.5)] ${gameState === "new" ? "text-green-300" : "text-transparent"}`}
         />
         <h1 className='sr-only'>{INTRO_TEXT}</h1>
+        <p className='sr-only'>
+          {PROFILE.role}. This page is an optional mini-game: knock the welcome letters
+          down with the ball using the mouse, touch, or the Space and arrow keys. You
+          don't need to play it to browse the site.
+        </p>
         <p
           ref={tagline}
           className={`font-mono text-sm max-md:text-xs tracking-wider opacity-0 transition-colors duration-300 ${gameState === "new" ? "text-green-500/80" : "text-transparent"}`}
@@ -498,10 +506,28 @@ const Home = () => {
       <div className='grid place-items-center mt-[clamp(5rem,22vh,13rem)] max-md:mt-20'>
         <AnimatedText
           text={WELCOME_TEXT}
+          label={WELCOME_LABEL}
           charRefs={charRefs}
           className='text-5xl max-lg:text-4xl max-md:text-2xl text-green-400 font-mono font-bold tracking-wider drop-shadow-[0_0_14px_rgba(34,197,94,0.65)] relative'
         />
       </div>
+
+      {/* First focusable element on the page, shown before the intro finishes so
+          keyboard and screen-reader users never have to wait for, or play, the game */}
+      {gameState === "new" && (
+        <Link
+          to={ROUTES.PROJECTS}
+          viewTransition
+          className={cn(
+            PILL,
+            "absolute left-1/2 top-1/2 mt-24 -translate-x-1/2 pointer-events-auto transition-colors duration-300",
+            "hover:bg-green-400/10 hover:text-green-300",
+            "focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-green-400/60",
+          )}
+        >
+          Skip game <span aria-hidden='true'>→</span> View work
+        </Link>
+      )}
 
       <Ball ref={ball} />
       <ScorePopups popups={scorePopups} onDone={removeScorePopup} />
