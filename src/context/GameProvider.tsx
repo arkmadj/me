@@ -12,6 +12,7 @@ const INITIAL_LIVES = 3;
 const INITIAL_SCORE = 0;
 const INITIAL_TIMER: GameTimer = { bankedMs: 0, startedAt: null };
 const BEST_SCORE_KEY = "maytricks:best-score";
+const MUTED_KEY = "maytricks:muted";
 
 const isGameEnded = (state: GameState) => state === "over" || state === "won";
 
@@ -32,10 +33,26 @@ const saveBestScore = (value: number) => {
   }
 };
 
+const readMuted = () => {
+  try {
+    return localStorage.getItem(MUTED_KEY) === "true";
+  } catch {
+    return false;
+  }
+};
+
+const saveMuted = (value: boolean) => {
+  try {
+    localStorage.setItem(MUTED_KEY, String(value));
+  } catch {
+    // ignore
+  }
+};
+
 export const GameProvider = ({ children }: GameProviderProps) => {
   const [gameState, setRawGameState] = useState<GameState>('new');
   const [timer, setTimer] = useState<GameTimer>(INITIAL_TIMER);
-  const [mutedSound, setMutedSound] = useState<boolean>(false);
+  const [mutedSound, setMutedSound] = useState(readMuted);
   const [score, setScore] = useState(INITIAL_SCORE);
   const [lives, setLives] = useState(INITIAL_LIVES);
   // Best score from previous games; the current game is folded in on reset
@@ -54,6 +71,10 @@ export const GameProvider = ({ children }: GameProviderProps) => {
       saveBestScore(score);
     }
   }, [gameState, isNewBest, score]);
+
+  useEffect(() => {
+    saveMuted(mutedSound);
+  }, [mutedSound]);
 
   // Only time spent with the ball in play counts, so pauses and serves don't run the clock.
   // Stable identity: Home relies on it inside effects and callbacks.
