@@ -32,25 +32,31 @@ const AnimatedCharacter = ({ char, index, onRef }: AnimatedCharacterProps) => {
 interface AnimatedTextProps {
   text: string;
   charRefs: React.RefObject<(HTMLSpanElement | null)[]>;
+  /** Readable version for screen readers (the visual text is all caps) */
+  label?: string;
   className?: string;
 }
 
-export const AnimatedText = ({ text, charRefs, className = "" }: AnimatedTextProps) => {
+export const AnimatedText = ({ text, label, charRefs, className = "" }: AnimatedTextProps) => {
   return (
-    // Letters are split for the physics, so give the text its full label
-    <p role="img" className={className} aria-label={text}>
-      {text.split("").map((char, index) => (
-        <AnimatedCharacter
-          key={index}
-          char={char}
-          index={index}
-          onRef={(idx, el) => {
-            if (charRefs.current) {
-              charRefs.current[idx] = el;
-            }
-          }}
-        />
-      ))}
+    // Letters are split (and later scattered) by the physics, so screen readers get
+    // the plain sentence and the individual letters are hidden from them
+    <p className={className}>
+      <span className="sr-only">{label ?? text}</span>
+      <span aria-hidden="true">
+        {text.split("").map((char, index) => (
+          <AnimatedCharacter
+            key={index}
+            char={char}
+            index={index}
+            onRef={(idx, el) => {
+              if (charRefs.current) {
+                charRefs.current[idx] = el;
+              }
+            }}
+          />
+        ))}
+      </span>
     </p>
   );
 };
