@@ -19,7 +19,7 @@ import { ScorePopups, type ScorePopup } from "./components/ScorePopups";
 import { isDeepEqual } from "@/lib/utils";
 import { useSound } from "@/hooks/useSound";
 import { prefersReducedMotion } from "@/hooks/useReveal";
-import { PROFILE } from "@/pages/About/data";
+import { PROFILE } from "@/data/profile";
 import { RotatingText } from "@/components/ui/RotatingText";
 import { GLOW_DOT, PILL } from "@/components/ui/pill";
 import { Kbd } from "@/components/ui/Kbd";

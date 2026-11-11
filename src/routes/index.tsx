@@ -2,8 +2,6 @@ import { createBrowserRouter, type RouteObject } from 'react-router-dom';
 import Layout from '@/components/layout/Layout';
 import Home from '@/pages/Home';
 import NotFound from '@/pages/NotFound';
-import About from '@/pages/About';
-import Projects from '@/pages/Projects';
 
 // Define your routes configuration
 export const routes: RouteObject[] = [
@@ -18,11 +16,12 @@ export const routes: RouteObject[] = [
       // Add more routes here as needed
       {
         path: 'about',
-        element: <About />,
+        // Code-split: Home (the game) shouldn't ship About's code or the GitHub stats JSON
+        lazy: async () => ({ Component: (await import('@/pages/About')).default }),
       },
       {
         path: 'projects',
-        element: <Projects />,
+        lazy: async () => ({ Component: (await import('@/pages/Projects')).default }),
       },
       {
         path: '*',
