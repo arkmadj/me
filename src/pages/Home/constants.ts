@@ -1,5 +1,7 @@
 // Game constants and configuration
 export const WELCOME_TEXT = "WELCOME TO THE MAYTRICKS";
+// Sentence-case version for screen readers, which may spell out all-caps text
+export const WELCOME_LABEL = "Welcome to the Maytricks";
 export const INTRO_TEXT = "Hello, I am Ahmad Jinadu";
 
 // Animation timings
