@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { ComponentProps, ReactNode } from "react";
 import { useGame } from "@/context";
 import { ROUTES } from "@/routes/paths";
@@ -16,6 +16,7 @@ import { GLOW_DOT, KEYCAP, PILL } from "@/components/ui/pill";
 import { Kbd } from "@/components/ui/Kbd";
 import { HudFrame } from "@/components/common/HudFrame";
 import { Leaderboard } from "@/components/common/Leaderboard";
+import { useFocusTrap } from "@/hooks/useFocusTrap";
 
 const MAX_LIVES = 3;
 const LABEL = "text-[10px] uppercase tracking-[0.3em] text-green-500/60";
@@ -108,13 +109,17 @@ interface MenuScreenProps {
 
 const MenuScreen = ({ status, title, frame, hint, extra, children }: MenuScreenProps) => {
   const { score, lives, bestScore, isNewBest } = useGame();
+  const dialogRef = useRef<HTMLElement>(null);
+  useFocusTrap(dialogRef);
 
   return (
     <main
+      ref={dialogRef}
+      tabIndex={-1}
       role='dialog'
       aria-modal='true'
       aria-labelledby='game-menu-title'
-      className='absolute inset-0 z-50 flex justify-center overflow-y-auto p-4 bg-black/60 backdrop-blur-sm animate-fade-in [animation-duration:300ms]'
+      className='absolute inset-0 z-50 flex justify-center overflow-y-auto p-4 outline-none bg-black/60 backdrop-blur-sm animate-fade-in [animation-duration:300ms]'
     >
       {frame && <HudFrame visible />}
 
