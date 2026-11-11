@@ -24,7 +24,7 @@ const MatrixRain = forwardRef<HTMLCanvasElement, MatrixRainProps>(
       if (!ctx) return;
 
       // Fewer columns and frames on low-end devices (few cores, little memory, Save-Data)
-      const { fps, fontSize } = getRainQuality();
+      const { fps, fontSize } = getRainQuality(globalThis.navigator);
       const frameInterval = 1000 / fps;
       const reduceMotion = prefersReducedMotion();
 

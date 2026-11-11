@@ -14,7 +14,7 @@ export const FULL_QUALITY: RainQuality = { fps: 30, fontSize: 16 };
 export const LOW_QUALITY: RainQuality = { fps: 15, fontSize: 20 };
 
 /** Picks a rain quality tier from device hints. Missing hints are treated as capable. */
-export const getRainQuality = (nav: DeviceHints | undefined = globalThis.navigator): RainQuality => {
+export const getRainQuality = (nav: DeviceHints | undefined): RainQuality => {
   if (!nav) return FULL_QUALITY;
   const cores = nav.hardwareConcurrency ?? 8;
   const memory = nav.deviceMemory ?? 8; // Chromium only, in GiB buckets
