@@ -10,6 +10,17 @@ interface UseGameControlsProps {
   onKeyUp?: (e: KeyboardEvent) => void;
 }
 
+const isTextField = (target: EventTarget | null) =>
+  target instanceof HTMLElement &&
+  (target.isContentEditable || target.closest("input, textarea, select") !== null);
+
+// Space on a focused link or button activates it (e.g. the skip link, the mute
+// button), so it must not also launch or pause the game
+const isInteractiveTarget = (target: EventTarget | null) =>
+  isTextField(target) ||
+  (target instanceof HTMLElement &&
+    target.closest("a[href], button, [role='button'], [role='link']") !== null);
+
 export const useGameControls = ({
   gameStateRef,
   setGameState,
@@ -20,6 +31,14 @@ export const useGameControls = ({
 }: UseGameControlsProps) => {
   const handleKeyDown = useCallback(
     (e: KeyboardEvent) => {
+      // Typing in a field (e.g. the leaderboard name) needs Space and the arrows
+      if (e.key !== "Escape" && isTextField(e.target)) {
+        return;
+      }
+      if (e.key === " " && isInteractiveTarget(e.target)) {
+        return;
+      }
+
       // Pass through to bat controls first
       if (onKeyDown) {
         onKeyDown(e);
