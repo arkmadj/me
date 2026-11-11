@@ -1,9 +1,16 @@
 import { forwardRef, useEffect, useRef } from 'react';
 import { prefersReducedMotion } from '@/hooks/useReveal';
+import { getRainQuality } from './matrixQuality';
 
 interface MatrixRainProps {
   className?: string;
 }
+
+// Matrix characters - katakana, latin letters, and numbers
+const CHARS =
+  'アイウエオカキクケコサシスセソタチツテトナニヌネノハヒフヘホマミムメモヤユヨラリルレロワヲン' +
+  'ABCDEFGHIJKLMNOPQRSTUVWXYZ' +
+  '0123456789';
 
 const MatrixRain = forwardRef<HTMLCanvasElement, MatrixRainProps>(
   ({ className = '' }, ref) => {
@@ -11,91 +18,105 @@ const MatrixRain = forwardRef<HTMLCanvasElement, MatrixRainProps>(
 
     useEffect(() => {
       const canvas = internalRef.current;
-    if (!canvas) return;
+      if (!canvas) return;
 
-    const ctx = canvas.getContext('2d');
-    if (!ctx) return;
+      const ctx = canvas.getContext('2d');
+      if (!ctx) return;
 
-    // Set canvas size
-    canvas.width = window.innerWidth;
-    canvas.height = window.innerHeight;
+      // Fewer columns and frames on low-end devices (few cores, little memory, Save-Data)
+      const { fps, fontSize } = getRainQuality();
+      const frameInterval = 1000 / fps;
+      const reduceMotion = prefersReducedMotion();
 
-    // Matrix characters - katakana, latin letters, and numbers
-    const katakana = 'アイウエオカキクケコサシスセソタチツテトナニヌネノハヒフヘホマミムメモヤユヨラリルレロワヲン';
-    const latin = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
-    const nums = '0123456789';
-    const chars = katakana + latin + nums;
+      // y position (in rows) of each column's leading character
+      let drops: number[] = [];
 
-    const fontSize = 16;
-    const columns = Math.floor(canvas.width / fontSize);
+      const setup = () => {
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+        // Resizing the canvas resets its state, so restore it
+        ctx.fillStyle = '#000';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        ctx.font = `${fontSize}px monospace`;
 
-    // Array to track y position of each column
-    const drops: number[] = [];
-    for (let i = 0; i < columns; i++) {
-      drops[i] = Math.random() * -100; // Start at random positions above screen
-    }
+        const columns = Math.ceil(canvas.width / fontSize);
+        // Keep existing columns where they are; only seed new ones
+        drops = Array.from({ length: columns }, (_, i) => drops[i] ?? Math.random() * -100);
+      };
 
-    const draw = () => {
-      // Semi-transparent black to create fade effect
-      ctx.fillStyle = 'rgba(0, 0, 0, 0.05)';
-      ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-      ctx.font = `${fontSize}px monospace`;
-
-      for (let i = 0; i < drops.length; i++) {
-        // Random character
-        const char = chars[Math.floor(Math.random() * chars.length)];
+      const draw = () => {
+        // Semi-transparent black to create fade effect
+        ctx.fillStyle = 'rgba(0, 0, 0, 0.05)';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
 
         // Bright green for leading character
         ctx.fillStyle = '#0F0';
-        ctx.fillText(char, i * fontSize, drops[i] * fontSize);
+        for (let i = 0; i < drops.length; i++) {
+          const char = CHARS[Math.floor(Math.random() * CHARS.length)];
+          ctx.fillText(char, i * fontSize, drops[i] * fontSize);
 
-        // Reset drop to top randomly
-        if (drops[i] * fontSize > canvas.height && Math.random() > 0.975) {
-          drops[i] = 0;
+          // Reset drop to top randomly
+          if (drops[i] * fontSize > canvas.height && Math.random() > 0.975) {
+            drops[i] = 0;
+          }
+          drops[i]++;
         }
+      };
 
-        drops[i]++;
+      // Reduced motion: run the rain forward once and leave it as a still frame
+      const paintStill = () => {
+        for (let frame = 0; frame < 120; frame++) draw();
+      };
+
+      setup();
+
+      if (reduceMotion) {
+        paintStill();
+        const handleResize = () => {
+          setup();
+          paintStill();
+        };
+        window.addEventListener('resize', handleResize);
+        return () => window.removeEventListener('resize', handleResize);
       }
-    };
 
-    // Reduced motion: run the rain forward once and leave it as a still frame
-    const reduceMotion = prefersReducedMotion();
-    const paintStill = () => {
-      for (let frame = 0; frame < 120; frame++) draw();
-    };
+      // A timer at the target rate rather than a rAF loop: rAF would wake the renderer
+      // every vsync (60-120Hz) just to skip most frames, which measured slower.
+      let visible = true;
+      const interval = setInterval(() => {
+        if (visible && !document.hidden) draw();
+      }, frameInterval);
 
-    const interval = reduceMotion ? undefined : setInterval(draw, 33); // ~30fps
-    if (reduceMotion) paintStill();
+      // Stop drawing while the canvas is scrolled offscreen
+      const observer = new IntersectionObserver(([entry]) => {
+        visible = entry.isIntersecting;
+      });
+      observer.observe(canvas);
 
-    const handleResize = () => {
-      canvas.width = window.innerWidth;
-      canvas.height = window.innerHeight;
-      if (reduceMotion) paintStill();
-    };
+      window.addEventListener('resize', setup);
 
-    window.addEventListener('resize', handleResize);
+      return () => {
+        clearInterval(interval);
+        observer.disconnect();
+        window.removeEventListener('resize', setup);
+      };
+    }, []);
 
-    return () => {
-      clearInterval(interval);
-      window.removeEventListener('resize', handleResize);
-    };
-  }, []);
-
-  return (
-    <canvas
-      ref={(node) => {
-        internalRef.current = node;
-        if (typeof ref === 'function') {
-          ref(node);
-        } else if (ref) {
-          (ref as React.RefObject<HTMLCanvasElement | null>).current = node;
-        }
-      }}
-      className={className}
-    />
-  );
-});
+    return (
+      <canvas
+        ref={(node) => {
+          internalRef.current = node;
+          if (typeof ref === 'function') {
+            ref(node);
+          } else if (ref) {
+            (ref as React.RefObject<HTMLCanvasElement | null>).current = node;
+          }
+        }}
+        className={className}
+      />
+    );
+  }
+);
 
 MatrixRain.displayName = 'MatrixRain';
 
