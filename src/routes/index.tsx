@@ -20,7 +20,6 @@ export const routes: RouteObject[] = [
             index: true,
             element: <Home />,
           },
-          // Add more routes here as needed
           {
             path: 'about',
             // Code-split: Home (the game) shouldn't ship About's code or the GitHub stats JSON
@@ -42,11 +41,6 @@ export const routes: RouteObject[] = [
       },
     ],
   },
-  // Add routes outside of the main layout if needed
-  // {
-  //   path: '/login',
-  //   element: <Login />,
-  // },
 ];
 
 // Create the router instance
