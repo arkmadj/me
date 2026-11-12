@@ -41,7 +41,8 @@ jobs:
     name: Deploy to Cloudflare
     needs: check
     # Opt-in: set the repository variable DEPLOY_ENABLED=true to turn this on
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main' && vars.DEPLOY_ENABLED == 'true'
+    # workflow_dispatch is included so the stats-refresh workflow can trigger a deploy
+    if: (github.event_name == 'push' || github.event_name == 'workflow_dispatch') && github.ref == 'refs/heads/main' && vars.DEPLOY_ENABLED == 'true'
     runs-on: ubuntu-latest
     environment: production
     # Never cancel a deploy halfway through
