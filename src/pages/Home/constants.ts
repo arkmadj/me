@@ -5,13 +5,18 @@ export const WELCOME_LABEL = "Welcome to the Maytricks";
 export const INTRO_TEXT = "Hello, I am Ahmad Jinadu";
 
 // Animation timings
+const CHAR_START = 2500;
+const CHAR_DELAY = 50;
+const CHAR_DURATION = 50;
+
 export const ANIMATION_TIMINGS = {
   INTRO_DELAY: 600,
   INTRO_DURATION: 2000,
-  CHAR_START: 2500,
-  CHAR_DELAY: 50,
-  CHAR_DURATION: 50,
-  WELCOME_COMPLETE: 3750, // Calculated from: 2500 + (24 * 50) + 50
+  CHAR_START,
+  CHAR_DELAY,
+  CHAR_DURATION,
+  // Derived so it stays in sync if WELCOME_TEXT changes
+  WELCOME_COMPLETE: CHAR_START + WELCOME_TEXT.length * CHAR_DELAY + CHAR_DURATION,
   CONTROLS_HINT_DURATION: 3500,
 } as const;
 
